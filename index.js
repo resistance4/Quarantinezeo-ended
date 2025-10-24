@@ -5806,9 +5806,6 @@ client.on('messageCreate', async message => {
     }
 });
 
-// Close message create event handler properly
-});
-
 // === SECURITY MANAGER EVENT LISTENERS ===
 
 // Role security events
@@ -8175,7 +8172,9 @@ client.on('messageCreate', async message => {
         // Channel Creation/Management Commands
         'crcato', 'crchannel', 'crvc', 'delchannel', 'botcmdslock', 'botcmdsunlock', 'disconnectall', 'dmes', 'say', 'move',
         // General Channel Commands
-        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear'
+        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear',
+        // Ticket Commands
+        'ticket', 'ticketclose'
     ];
 
     const isCommandLike = commandLikePatterns.some(pattern => messageContent.startsWith(pattern));
