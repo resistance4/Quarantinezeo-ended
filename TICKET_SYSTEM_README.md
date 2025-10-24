@@ -15,7 +15,7 @@ This is a comprehensive ticket system for Discord that allows users to create su
 ## Setup Commands
 
 ### 1. Create Ticket Panel
-**Command:** `!ticket <channel_id> [@role]`
+**Command:** `ticket <channel_id> [@role]` (no prefix needed)
 
 **Description:** Sets up a ticket panel in the specified channel with a button that users can click to open tickets.
 
@@ -25,10 +25,10 @@ This is a comprehensive ticket system for Discord that allows users to create su
 
 **Examples:**
 ```
-!ticket 1234567890
-!ticket #support
-!ticket 1234567890 @Support Team
-!ticket #support @Staff
+ticket 1234567890
+ticket #support
+ticket 1234567890 @Support Team
+ticket #support @Staff
 ```
 
 **What happens:**
@@ -43,7 +43,7 @@ This is a comprehensive ticket system for Discord that allows users to create su
 ---
 
 ### 2. Close Tickets
-**Command:** `!ticketclose [channel_id]`
+**Command:** `ticketclose [channel_id]` (no prefix needed)
 
 **Description:** Closes a ticket channel.
 
@@ -52,9 +52,9 @@ This is a comprehensive ticket system for Discord that allows users to create su
 
 **Examples:**
 ```
-!ticketclose
-!ticketclose 1234567890
-!ticketclose #ticket-5
+ticketclose
+ticketclose 1234567890
+ticketclose #ticket-5
 ```
 
 **What happens:**
@@ -168,7 +168,7 @@ This is a comprehensive ticket system for Discord that allows users to create su
 
 ### Setting Up
 ```
-1. Admin runs: !ticket #support @Support Team
+1. Admin runs: ticket #support @Support Team
 2. Bot posts ticket panel in #support
 3. Users can now click the button to create tickets
 ```
@@ -201,11 +201,11 @@ Option 1: Button
 3. Channel deletes after 5 seconds
 
 Option 2: Command
-1. Staff types: !ticketclose
+1. Staff types: ticketclose
 2. Same result as button method
 
 Option 3: Command from another channel
-1. Staff types: !ticketclose #ticket-1
+1. Staff types: ticketclose #ticket-1
 2. Same result
 ```
 
@@ -284,8 +284,8 @@ Option 3: Command from another channel
 
 | Command | Usage | Permission Required |
 |---------|-------|-------------------|
-| `!ticket` | `!ticket <channel_id> [@role]` | Manage Channels, Server Owner, or Bot Owner |
-| `!ticketclose` | `!ticketclose [channel_id]` | Manage Channels, Administrator, or Server Owner |
+| `ticket` | `ticket <channel_id> [@role]` | Manage Channels, Server Owner, or Bot Owner |
+| `ticketclose` | `ticketclose [channel_id]` | Manage Channels, Administrator, or Server Owner |
 
 ---
 
