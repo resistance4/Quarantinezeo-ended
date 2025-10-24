@@ -31,6 +31,10 @@ const SecurityManager = require('./securityManager');
 const { EmbedBuilder: SecurityEmbedBuilder, AuditLogEvent } = require('discord.js');
 let securityManager = null;
 
+// Ticket Manager Integration
+const TicketManager = require('./ticketManagement');
+let ticketManager = null;
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -5417,6 +5421,65 @@ client.on('messageCreate', async message => {
         return;
     }
 
+    // === TICKET SYSTEM COMMANDS ===
+    if (command === 'ticket') {
+        if (!ticketManager) {
+            return message.reply('❌ Ticket Manager not initialized');
+        }
+        
+        // Check permissions
+        if (!message.member.permissions.has(PermissionFlagsBits.ManageChannels) && 
+            message.author.id !== message.guild.ownerId && 
+            message.author.id !== BOT_OWNER_ID) {
+            return message.reply('❌ You need the "Manage Channels" permission to set up ticket panels.');
+        }
+        
+        // Parse arguments: !ticket "channel_id" "message" @role
+        // Simple parsing: !ticket <channelId> <roleId>
+        const channelId = args[0];
+        if (!channelId) {
+            return message.reply('❌ Please provide a channel ID or mention.\nUsage: `!ticket <channel_id> [@role]`\nExample: `!ticket 123456789 @Support`');
+        }
+        
+        // Extract role ID if provided
+        let roleId = null;
+        const roleMention = message.mentions.roles.first();
+        if (roleMention) {
+            roleId = roleMention.id;
+        } else if (args[1]) {
+            // Try to parse role ID
+            roleId = args[1].replace(/[<@&>]/g, '');
+        }
+        
+        // Default panel message
+        const panelMessage = 'Click the button below to open a support ticket.\n\nOur staff team will assist you shortly!';
+        
+        try {
+            await ticketManager.createTicketPanel(message, channelId.replace(/[<#>]/g, ''), panelMessage, roleId);
+        } catch (error) {
+            console.error('Error creating ticket panel:', error);
+            await message.reply('❌ An error occurred while creating the ticket panel.');
+        }
+        return;
+    }
+
+    if (command === 'ticketclose') {
+        if (!ticketManager) {
+            return message.reply('❌ Ticket Manager not initialized');
+        }
+        
+        // Get the channel ID from args (optional)
+        const channelId = args[0] ? args[0].replace(/[<#>]/g, '') : null;
+        
+        try {
+            await ticketManager.closeTicket(message, channelId);
+        } catch (error) {
+            console.error('Error closing ticket:', error);
+            await message.reply('❌ An error occurred while closing the ticket.');
+        }
+        return;
+    }
+
     // === GLOBAL ANNOUNCEMENT COMMAND ===
     if (command === 'gannounce' || command === 'gannoc') {
         // Only bot owner can use global announcement
@@ -5617,6 +5680,11 @@ client.on('channelCreate', async (channel) => {
 client.on('channelDelete', async (channel) => {
     if (securityManager) {
         await securityManager.monitorChannelDelete(channel);
+    }
+    
+    // Clean up ticket data if a ticket channel is deleted
+    if (ticketManager) {
+        ticketManager.handleChannelDelete(channel.id);
     }
 });
 
@@ -5950,6 +6018,10 @@ client.once('ready', async () => {
     // Initialize Security Manager
     securityManager = new SecurityManager(client);
     console.log('✅ Security Manager initialized');
+
+    // Initialize Ticket Manager
+    ticketManager = new TicketManager(client);
+    console.log('✅ Ticket Manager initialized');
 
     // Initialize Slash Command Handler
     slashCommandHandler = new SlashCommandHandler(client, {
@@ -7245,6 +7317,21 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
     try {
+        // Handle ticket system buttons
+        if (interaction.customId === 'open_ticket') {
+            if (ticketManager) {
+                await ticketManager.handleTicketButton(interaction);
+                return;
+            }
+        }
+
+        if (interaction.customId === 'close_ticket') {
+            if (ticketManager) {
+                await ticketManager.handleCloseButton(interaction);
+                return;
+            }
+        }
+
         // Handle stats card switching
         if (interaction.customId.startsWith('stats_')) {
             const [, cardType, guildId] = interaction.customId.split('_');

@@ -344,6 +344,79 @@ async function getDatabaseStats() {
     }
 }
 
+// ===== TICKET SYSTEM STORAGE =====
+// Ticket panels: guildId -> { channelId, messageId, roleId, message }
+const ticketPanels = new Map();
+// Active tickets: ticketChannelId -> { userId, guildId, ticketNumber, createdAt }
+const activeTickets = new Map();
+// Ticket numbers: guildId -> ticketNumber
+const ticketNumbers = new Map();
+
+// Save ticket panel configuration
+function saveTicketPanel(guildId, panelData) {
+    ticketPanels.set(guildId, panelData);
+    console.log(`✅ Saved ticket panel for guild ${guildId}`);
+}
+
+// Get ticket panel configuration
+function getTicketPanel(guildId) {
+    return ticketPanels.get(guildId) || null;
+}
+
+// Save active ticket
+function saveActiveTicket(channelId, ticketData) {
+    activeTickets.set(channelId, ticketData);
+    console.log(`✅ Saved active ticket: ${channelId}`);
+}
+
+// Get active ticket
+function getActiveTicket(channelId) {
+    return activeTickets.get(channelId) || null;
+}
+
+// Delete active ticket
+function deleteActiveTicket(channelId) {
+    const deleted = activeTickets.delete(channelId);
+    if (deleted) {
+        console.log(`✅ Deleted active ticket: ${channelId}`);
+    }
+    return deleted;
+}
+
+// Find user's active ticket in a guild
+function findUserTicket(guildId, userId) {
+    for (const [channelId, ticketInfo] of activeTickets.entries()) {
+        if (ticketInfo.guildId === guildId && ticketInfo.userId === userId) {
+            return channelId;
+        }
+    }
+    return null;
+}
+
+// Get all active tickets for a guild
+function getGuildTickets(guildId) {
+    const tickets = [];
+    for (const [channelId, ticketInfo] of activeTickets.entries()) {
+        if (ticketInfo.guildId === guildId) {
+            tickets.push({ channelId, ...ticketInfo });
+        }
+    }
+    return tickets;
+}
+
+// Get or increment ticket number for a guild
+function getNextTicketNumber(guildId) {
+    let currentNumber = ticketNumbers.get(guildId) || 0;
+    currentNumber++;
+    ticketNumbers.set(guildId, currentNumber);
+    return currentNumber;
+}
+
+// Get current ticket number for a guild
+function getCurrentTicketNumber(guildId) {
+    return ticketNumbers.get(guildId) || 0;
+}
+
 module.exports = {
     initializeDatabase,
     saveHelpInteraction,
@@ -351,5 +424,15 @@ module.exports = {
     deleteHelpInteraction,
     cleanupOldInteractions,
     closeDatabase,
-    getDatabaseStats
+    getDatabaseStats,
+    // Ticket system functions
+    saveTicketPanel,
+    getTicketPanel,
+    saveActiveTicket,
+    getActiveTicket,
+    deleteActiveTicket,
+    findUserTicket,
+    getGuildTickets,
+    getNextTicketNumber,
+    getCurrentTicketNumber
 };
