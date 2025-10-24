@@ -3938,6 +3938,11 @@ function createCategoryDropdown() {
                 .setValue('category_server')
                 .setEmoji('⚙️'),
             new StringSelectMenuOptionBuilder()
+                .setLabel('Ticket System')
+                .setDescription('Support ticket management system')
+                .setValue('category_ticket')
+                .setEmoji('🎫'),
+            new StringSelectMenuOptionBuilder()
                 .setLabel('Utility Commands')
                 .setDescription('Emergency, config, and utility commands')
                 .setValue('category_utility')
@@ -4216,6 +4221,39 @@ function createCategoryEmbed(category) {
                     `• WhatsApp critical alerts\n` +
                     `• God-level security protection`)
                 .setFooter({ text: 'Server Management & Protection', iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif' });
+            break;
+
+        case 'category_ticket':
+            embed.setTitle('🎫 **Ticket System**')
+                .setDescription(`**Total Commands:** ${totalCommands} • **Admin Channel / Authorized Users**\n\n` +
+
+                    `**🎫 Ticket System Commands**\n` +
+                    `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
+                    `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
+                    `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
+                    `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
+
+                    `**✨ Ticket System Features**\n` +
+                    `• **Button-Based Creation:** Users click button to open tickets\n` +
+                    `• **Automatic Private Channels:** Creates hidden ticket channels\n` +
+                    `• **Permission Management:** Only creator, admins, and owner can view\n` +
+                    `• **Role Ping Notifications:** Notify support team when tickets open\n` +
+                    `• **Ticket Numbering:** Auto-incrementing ticket numbers per server\n` +
+                    `• **Easy Closing:** Close via button or command\n` +
+                    `• **One Ticket Per User:** Prevents spam\n\n` +
+
+                    `**📋 Setup Example**\n` +
+                    `\`ticket #support @Support Team\`\n` +
+                    `This creates a panel in #support that pings @Support Team when tickets are created.\n\n` +
+
+                    `**🔒 How It Works**\n` +
+                    `1. Admin creates ticket panel with \`ticket\` command\n` +
+                    `2. Users click "📩 Open Ticket" button\n` +
+                    `3. Private ticket channel created automatically\n` +
+                    `4. Support team receives notification\n` +
+                    `5. Staff can close ticket with button or \`ticketclose\` command\n` +
+                    `6. Channel auto-deletes after 5 seconds`)
+                .setFooter({ text: 'Ticket System', iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif' });
             break;
 
         case 'category_utility':
