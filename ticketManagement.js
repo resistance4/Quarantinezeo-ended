@@ -231,7 +231,7 @@ class TicketManager {
                     { name: '📌 Ticket Creator', value: `${member}`, inline: true },
                     { name: '🕐 Created At', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
                 )
-                .setFooter({ text: 'To close this ticket, an admin can use !ticketclose' })
+                .setFooter({ text: 'To close this ticket, an admin can use ticketclose or click the button below' })
                 .setTimestamp();
 
             // Create close button
