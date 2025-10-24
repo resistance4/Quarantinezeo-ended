@@ -6190,8 +6190,7 @@ client.once('ready', async () => {
         channelManager,
         mediaThreadsManager,
         utilityManager,
-        voiceManager,
-        ticketManager
+        voiceManager
     });
     console.log('✅ Slash Command Handler initialized');
 

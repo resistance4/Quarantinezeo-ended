@@ -8,7 +8,6 @@ class SlashCommandHandler {
         this.mediaThreadsManager = managers.mediaThreadsManager;
         this.utilityManager = managers.utilityManager;
         this.voiceManager = managers.voiceManager;
-        this.ticketManager = managers.ticketManager;
 
         // Extra owner tracking
         this.permanentExtraOwners = new Set();
@@ -214,12 +213,6 @@ class SlashCommandHandler {
                     return await this.handleGlobalAnnoc(interaction);
                 case 'setannouncechannel':
                     return await this.handleSetAnnounceChannel(interaction);
-
-                // Ticket System Commands
-                case 'ticket':
-                    return await this.handleTicket(interaction);
-                case 'ticketclose':
-                    return await this.handleTicketClose(interaction);
             }
         } catch (error) {
             console.error(`Error in /${commandName}:`, error);
@@ -1029,148 +1022,6 @@ class SlashCommandHandler {
         } catch (error) {
             console.error('Error in global announcement:', error);
             await interaction.editReply({ content: '❌ Failed to send global announcement: ' + error.message });
-        }
-    }
-
-    // Ticket System Handlers
-    async handleTicket(interaction) {
-        if (!this.isAuthorized(interaction)) {
-            return await interaction.reply({ content: '❌ Unauthorized', ephemeral: true });
-        }
-
-        if (!this.ticketManager) {
-            return await interaction.reply({ content: '❌ Ticket Manager not initialized', ephemeral: true });
-        }
-
-        const channel = interaction.options.getChannel('channel');
-        const role = interaction.options.getRole('role');
-        const customMessage = interaction.options.getString('message');
-
-        try {
-            // Validate channel
-            if (!channel || !channel.isTextBased()) {
-                return await interaction.reply({ content: '❌ Please provide a valid text channel!', ephemeral: true });
-            }
-
-            // Check bot permissions
-            const botMember = interaction.guild.members.me;
-            if (!botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
-                return await interaction.reply({ content: '❌ I need the "Manage Channels" permission to create tickets!', ephemeral: true });
-            }
-
-            if (!botMember.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                return await interaction.reply({ content: '❌ I need the "Manage Roles" permission to create tickets!', ephemeral: true });
-            }
-
-            // Create ticket panel
-            const panelMessage = customMessage || 'Click the button below to open a support ticket.\n\nOur staff team will assist you shortly!';
-            
-            // Create the ticket panel embed
-            const embed = new EmbedBuilder()
-                .setTitle('🎫 Support Ticket System')
-                .setDescription(panelMessage)
-                .setColor('#5865F2')
-                .setFooter({ text: 'Click the button below to create a ticket' })
-                .setTimestamp();
-
-            // Create the button
-            const button = new ButtonBuilder()
-                .setCustomId('open_ticket')
-                .setLabel('📩 Open Ticket')
-                .setStyle(ButtonStyle.Primary);
-
-            const row = new ActionRowBuilder().addComponents(button);
-
-            // Send the panel message
-            const panelMsg = await channel.send({
-                embeds: [embed],
-                components: [row]
-            });
-
-            // Store the panel configuration
-            this.ticketManager.ticketPanels.set(interaction.guild.id, {
-                channelId: channel.id,
-                messageId: panelMsg.id,
-                roleId: role ? role.id : null,
-                message: panelMessage
-            });
-
-            // Initialize ticket number for this guild if not exists
-            if (!this.ticketManager.ticketNumbers.has(interaction.guild.id)) {
-                this.ticketManager.ticketNumbers.set(interaction.guild.id, 0);
-            }
-
-            const confirmEmbed = new EmbedBuilder()
-                .setTitle('✅ Ticket Panel Created')
-                .setDescription(`Ticket panel has been successfully created in ${channel}`)
-                .setColor('#00FF00')
-                .addFields(
-                    { name: 'Channel', value: `${channel}`, inline: true },
-                    { name: 'Message ID', value: panelMsg.id, inline: true },
-                    { name: 'Role to Ping', value: role ? `<@&${role.id}>` : 'None', inline: true }
-                )
-                .setTimestamp();
-
-            return await interaction.reply({ embeds: [confirmEmbed], ephemeral: true });
-
-        } catch (error) {
-            console.error('Error creating ticket panel:', error);
-            return await interaction.reply({ content: '❌ An error occurred while creating the ticket panel!', ephemeral: true });
-        }
-    }
-
-    async handleTicketClose(interaction) {
-        if (!this.isAuthorized(interaction)) {
-            return await interaction.reply({ content: '❌ Unauthorized', ephemeral: true });
-        }
-
-        if (!this.ticketManager) {
-            return await interaction.reply({ content: '❌ Ticket Manager not initialized', ephemeral: true });
-        }
-
-        const ticketChannel = interaction.options.getChannel('ticket') || interaction.channel;
-
-        try {
-            // Check if it's a ticket channel
-            if (!this.ticketManager.activeTickets.has(ticketChannel.id)) {
-                return await interaction.reply({ content: '❌ This is not a valid ticket channel!', ephemeral: true });
-            }
-
-            // Get ticket info
-            const ticketInfo = this.ticketManager.activeTickets.get(ticketChannel.id);
-
-            // Create closing embed
-            const closingEmbed = new EmbedBuilder()
-                .setTitle('🔒 Ticket Closed')
-                .setDescription('This ticket has been closed by a staff member.')
-                .setColor('#FF0000')
-                .addFields(
-                    { name: 'Closed By', value: `${interaction.user}`, inline: true },
-                    { name: 'Ticket Number', value: `#${ticketInfo.ticketNumber}`, inline: true }
-                )
-                .setTimestamp();
-
-            // Reply first
-            await interaction.reply({ embeds: [closingEmbed] });
-
-            // If closing a different channel, confirm there
-            if (interaction.channel.id !== ticketChannel.id) {
-                await ticketChannel.send({ embeds: [closingEmbed] });
-            }
-
-            // Wait 5 seconds then delete
-            setTimeout(async () => {
-                try {
-                    this.ticketManager.activeTickets.delete(ticketChannel.id);
-                    await ticketChannel.delete('Ticket closed by command');
-                } catch (error) {
-                    console.error('Error deleting ticket channel:', error);
-                }
-            }, 5000);
-
-        } catch (error) {
-            console.error('Error closing ticket:', error);
-            return await interaction.reply({ content: '❌ An error occurred while closing the ticket!', ephemeral: true });
         }
     }
 }

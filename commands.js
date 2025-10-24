@@ -695,21 +695,6 @@ const commands = [
         .addIntegerOption(option => option.setName('duration').setDescription('Duration in minutes').setRequired(true).setMinValue(1))
         .addIntegerOption(option => option.setName('winners').setDescription('Number of winners').setRequired(true).setMinValue(1).setMaxValue(10))
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-
-    // Ticket System Commands
-    new SlashCommandBuilder()
-        .setName('ticket')
-        .setDescription('Create a ticket panel in a channel')
-        .addChannelOption(option => option.setName('channel').setDescription('Channel to create ticket panel in').setRequired(true))
-        .addRoleOption(option => option.setName('role').setDescription('Role to ping when tickets are created'))
-        .addStringOption(option => option.setName('message').setDescription('Custom panel message'))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
-
-    new SlashCommandBuilder()
-        .setName('ticketclose')
-        .setDescription('Close a ticket channel')
-        .addChannelOption(option => option.setName('ticket').setDescription('Ticket channel to close (defaults to current channel)'))
-        .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
 ];
 
 async function registerCommands() {
