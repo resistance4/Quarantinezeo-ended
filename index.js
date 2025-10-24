@@ -8535,6 +8535,18 @@ client.on('messageCreate', async message => {
             return;
         }
 
+        // Lock Bot Commands
+        if (command === 'botcmdslock') {
+            await channelManager.handleCommand(message, command, args);
+            return;
+        }
+
+        // Unlock Bot Commands
+        if (command === 'botcmdsunlock') {
+            await channelManager.handleCommand(message, command, args);
+            return;
+        }
+
         // === VOICE CHANNEL MANAGEMENT ===
         
         // Lock voice channel (prevent joining)
