@@ -8240,9 +8240,9 @@ client.on('messageCreate', async message => {
         // Channel Creation/Management Commands
         'crcato', 'crchannel', 'crvc', 'delchannel', 'botcmdslock', 'botcmdsunlock', 'disconnectall', 'dmes', 'say', 'move',
         // General Channel Commands
-        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear',
-        // Ticket Commands
-        'ticket', 'ticketclose'
+        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear'
+        // NOTE: Ticket commands (ticket, ticketopen, ticketclose) are NOT included here
+        // They have their own permission checks (ManageChannels) in the first messageCreate handler
     ];
 
     const isCommandLike = commandLikePatterns.some(pattern => messageContent.startsWith(pattern));
