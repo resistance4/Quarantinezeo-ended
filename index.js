@@ -3846,7 +3846,7 @@ function createHelpCard11() {
             `**🎫 Ticket System Commands**\n` +
             `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
             `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
-            `ᡣ𐭩 \`ticketopen "channel" "message"\` - Create ticket panel with custom message\n` +
+            `ᡣ𐭩 \`ticketopen <channel> [message]\` - Create ticket panel with custom message\n` +
             `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
             `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
 
@@ -3861,7 +3861,8 @@ function createHelpCard11() {
 
             `**📋 Setup Examples**\n` +
             `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
-            `\`ticketopen "1234567890" "Need help? Open a ticket!"\` - Custom message\n\n` +
+            `\`ticketopen #support Need help? Click below!\` - With custom message\n` +
+            `\`ticketopen 1234567890\` - Panel with default message\n\n` +
 
             `**🔒 How It Works**\n` +
             `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
@@ -4231,7 +4232,7 @@ function createCategoryEmbed(category) {
                     `**🎫 Ticket System Commands**\n` +
                     `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
                     `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
-                    `ᡣ𐭩 \`ticketopen "channel" "message"\` - Create panel with custom message\n` +
+                    `ᡣ𐭩 \`ticketopen <channel> [message]\` - Create panel with custom message\n` +
                     `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
                     `ᡣ𐭩 \`ticketclose #username-X\` - Close specific ticket\n\n` +
 
@@ -4246,7 +4247,8 @@ function createCategoryEmbed(category) {
 
                     `**📋 Setup Examples**\n` +
                     `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
-                    `\`ticketopen "#support" "Need help? Click below!"\` - With custom message\n\n` +
+                    `\`ticketopen #support Need help? Click below!\` - With custom message\n` +
+                    `\`ticketopen 1234567890\` - Panel with default message\n\n` +
 
                     `**🔒 How It Works**\n` +
                     `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
@@ -5395,23 +5397,36 @@ client.on('messageCreate', async message => {
             return message.reply('❌ You need the "Manage Channels" permission to set up ticket panels.');
         }
         
-        // Parse command: ticketopen "channel id or mention" "message or details"
+        // Parse command: ticketopen <channel> [message]
         const fullCommand = message.content.slice(firstWord.length).trim();
         
-        // Extract channel and message using regex to handle quoted strings
-        const matches = fullCommand.match(/["']([^"']+)["']\s+["']([^"']+)["']/);
-        
-        if (!matches || matches.length < 3) {
+        if (!fullCommand) {
             return message.reply(
                 '❌ Invalid format!\n' +
-                '**Usage:** `ticketopen "channel_id_or_mention" "message or details"`\n' +
-                '**Example:** `ticketopen "1234567890" "Need help? Click below to open a ticket!"`\n' +
-                '**Example:** `ticketopen "#support" "Support team will assist you shortly"`'
+                '**Usage:** `ticketopen <channel_id_or_mention> [custom message]`\n' +
+                '**Examples:**\n' +
+                '• `ticketopen #support` - Create panel with default message\n' +
+                '• `ticketopen 1234567890 Need help? Click below!` - Custom message\n' +
+                '• `ticketopen #support Our support team will assist you` - Channel mention with custom message'
             );
         }
         
-        let channelInput = matches[1];
-        const panelMessage = matches[2];
+        // Extract channel and message - flexible parsing
+        let channelInput = '';
+        let panelMessage = null;
+        
+        // Check if first part is a channel mention or ID
+        const parts = fullCommand.split(/\s+/);
+        if (parts.length === 0) {
+            return message.reply('❌ Please provide a channel ID or mention.');
+        }
+        
+        channelInput = parts[0];
+        
+        // If there are more parts, join them as the custom message
+        if (parts.length > 1) {
+            panelMessage = parts.slice(1).join(' ');
+        }
         
         // Clean channel ID (remove <#> if it's a mention)
         channelInput = channelInput.replace(/[<#>]/g, '');
@@ -5423,7 +5438,7 @@ client.on('messageCreate', async message => {
                 return message.reply('❌ Invalid channel! Please provide a valid text channel ID or mention.');
             }
             
-            // Create ticket panel with custom message
+            // Create ticket panel with custom message (or null for default)
             await ticketManager.createTicketPanel(message, channelInput, panelMessage, null);
         } catch (error) {
             console.error('Error creating ticket panel:', error);
