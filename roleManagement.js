@@ -23,7 +23,7 @@ class RoleManager {
         
         const isBotOwner = message.author.id === BOT_OWNER_ID;
         const isServerOwner = message.author.id === message.guild.ownerId;
-        const hasAdminRole = message.member && message.member.permissions.has('Administrator');
+        const hasAdminRole = message.member && message.member.permissions.has(PermissionFlagsBits.Administrator);
         const isInOwnerChannel = message.channel.id === OWNER_CHANNEL_ID;
 
         // Bot owner can use commands anywhere
@@ -751,17 +751,17 @@ class RoleManager {
                 .sort((a, b) => b.position - a.position);
             
             // Group roles by categories for better organization
-            const adminRoles = allRoles.filter(role => role.permissions.has('Administrator'));
+            const adminRoles = allRoles.filter(role => role.permissions.has(PermissionFlagsBits.Administrator));
             const moderatorRoles = allRoles.filter(role => 
-                !role.permissions.has('Administrator') && 
-                (role.permissions.has('ModerateMembers') || role.permissions.has('ManageMessages') || role.permissions.has('KickMembers') || role.permissions.has('BanMembers'))
+                !role.permissions.has(PermissionFlagsBits.Administrator) && 
+                (role.permissions.has(PermissionFlagsBits.ModerateMembers) || role.permissions.has(PermissionFlagsBits.ManageMessages) || role.permissions.has(PermissionFlagsBits.KickMembers) || role.permissions.has(PermissionFlagsBits.BanMembers))
             );
             const specialRoles = allRoles.filter(role => 
-                !role.permissions.has('Administrator') && 
-                !role.permissions.has('ModerateMembers') && 
-                !role.permissions.has('ManageMessages') && 
-                !role.permissions.has('KickMembers') && 
-                !role.permissions.has('BanMembers') &&
+                !role.permissions.has(PermissionFlagsBits.Administrator) && 
+                !role.permissions.has(PermissionFlagsBits.ModerateMembers) && 
+                !role.permissions.has(PermissionFlagsBits.ManageMessages) && 
+                !role.permissions.has(PermissionFlagsBits.KickMembers) && 
+                !role.permissions.has(PermissionFlagsBits.BanMembers) &&
                 (role.hoist || role.mentionable || role.color !== 0)
             );
             const regularRoles = allRoles.filter(role => 
@@ -816,9 +816,9 @@ class RoleManager {
                         const features = [];
                         
                         // Add role type indicators
-                        if (role.permissions.has('Administrator')) {
+                        if (role.permissions.has(PermissionFlagsBits.Administrator)) {
                             features.push('👑 Admin');
-                        } else if (role.permissions.has('ModerateMembers') || role.permissions.has('ManageMessages') || role.permissions.has('KickMembers') || role.permissions.has('BanMembers')) {
+                        } else if (role.permissions.has(PermissionFlagsBits.ModerateMembers) || role.permissions.has(PermissionFlagsBits.ManageMessages) || role.permissions.has(PermissionFlagsBits.KickMembers) || role.permissions.has(PermissionFlagsBits.BanMembers)) {
                             features.push('⚖️ Mod');
                         }
                         
