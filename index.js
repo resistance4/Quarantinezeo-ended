@@ -5681,6 +5681,11 @@ client.on('channelDelete', async (channel) => {
     if (securityManager) {
         await securityManager.monitorChannelDelete(channel);
     }
+    
+    // Clean up ticket data if a ticket channel is deleted
+    if (ticketManager) {
+        ticketManager.handleChannelDelete(channel.id);
+    }
 });
 
 client.on('channelUpdate', async (oldChannel, newChannel) => {
@@ -7312,6 +7317,21 @@ client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
     try {
+        // Handle ticket system buttons
+        if (interaction.customId === 'open_ticket') {
+            if (ticketManager) {
+                await ticketManager.handleTicketButton(interaction);
+                return;
+            }
+        }
+
+        if (interaction.customId === 'close_ticket') {
+            if (ticketManager) {
+                await ticketManager.handleCloseButton(interaction);
+                return;
+            }
+        }
+
         // Handle stats card switching
         if (interaction.customId.startsWith('stats_')) {
             const [, cardType, guildId] = interaction.customId.split('_');
