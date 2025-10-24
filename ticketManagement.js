@@ -14,8 +14,10 @@ class TicketManager {
         this.ticketPanels = new Map();
         // Store active tickets: ticketChannelId -> { userId, guildId, createdAt }
         this.activeTickets = new Map();
-        // Track ticket numbers per guild: guildId -> ticketNumber
+        // Track ticket numbers per guild: guildId -> ticketNumber (for backward compatibility)
         this.ticketNumbers = new Map();
+        // Track ticket numbers per user in each guild: 'guildId-userId' -> ticketNumber
+        this.userTicketNumbers = new Map();
     }
 
     /**
@@ -142,14 +144,19 @@ class TicketManager {
                 });
             }
 
-            // Get ticket number
-            let ticketNumber = this.ticketNumbers.get(guild.id) || 0;
-            ticketNumber++;
-            this.ticketNumbers.set(guild.id, ticketNumber);
+            // Get ticket number for this specific user
+            const userKey = `${guild.id}-${member.id}`;
+            let userTicketNumber = this.userTicketNumbers.get(userKey) || 0;
+            userTicketNumber++;
+            this.userTicketNumbers.set(userKey, userTicketNumber);
 
-            // Create the ticket channel
+            // Get clean username (alphanumeric only, lowercase)
+            let cleanUsername = member.user.username.toLowerCase().replace(/[^a-z0-9]/g, '');
+            if (!cleanUsername) cleanUsername = 'user'; // Fallback if username has no alphanumeric chars
+            
+            // Create the ticket channel with username-number format
             const ticketChannel = await guild.channels.create({
-                name: `ticket-${ticketNumber}`,
+                name: `${cleanUsername}-${userTicketNumber}`,
                 type: ChannelType.GuildText,
                 parent: ticketCategory.id,
                 permissionOverwrites: [
@@ -189,12 +196,12 @@ class TicketManager {
                 });
             }
 
-            // Add permissions for administrators
-            const adminRole = guild.roles.cache.find(
+            // Add permissions for all administrator roles
+            const adminRoles = guild.roles.cache.filter(
                 role => role.permissions.has(PermissionFlagsBits.Administrator)
             );
-            if (adminRole) {
-                await ticketChannel.permissionOverwrites.create(adminRole.id, {
+            for (const [roleId, adminRole] of adminRoles) {
+                await ticketChannel.permissionOverwrites.create(roleId, {
                     ViewChannel: true,
                     SendMessages: true,
                     ReadMessageHistory: true,
@@ -206,7 +213,8 @@ class TicketManager {
             this.activeTickets.set(ticketChannel.id, {
                 userId: member.id,
                 guildId: guild.id,
-                ticketNumber: ticketNumber,
+                ticketNumber: userTicketNumber,
+                username: cleanUsername,
                 createdAt: Date.now()
             });
 
@@ -220,7 +228,7 @@ class TicketManager {
 
             // Create welcome embed
             const welcomeEmbed = new EmbedBuilder()
-                .setTitle(`🎫 Ticket #${ticketNumber}`)
+                .setTitle(`🎫 Ticket ${cleanUsername}-${userTicketNumber}`)
                 .setDescription(
                     `Welcome ${member}!\n\n` +
                     `Thank you for creating a ticket. Our staff team will be with you shortly.\n\n` +

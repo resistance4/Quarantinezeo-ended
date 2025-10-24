@@ -530,8 +530,8 @@ function getTotalCommandsCount() {
         'enablemedia', 'mediachannel', 'mediaslowmode', 'mediaslow', 'lockmedia', 'unlockmedia', 'openmedia',
         // Thread Management (7 commands)
         'createthread', 'newthread', 'lockthread', 'unlockthread', 'openthread', 'archivethread', 'unarchivethread', 'deletethread', 'removethread',
-        // Ticket System (2 commands)
-        'ticket', 'ticketclose',
+        // Ticket System (3 commands)
+        'ticket', 'ticketopen', 'ticketclose',
         // Utility Commands (10 commands + emergency)
         'ping', 'help', 'dev', 'dm', 'ui', 'userinfo', 'fck', 'avatar', 'serverlogo', 'roleinfo', 'rename', 'srvpasuse',
         'panic', 'stop panic', 'emergency', 'end emergency', 'wbtestan'
@@ -3846,26 +3846,27 @@ function createHelpCard11() {
             `**🎫 Ticket System Commands**\n` +
             `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
             `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
+            `ᡣ𐭩 \`ticketopen "channel" "message"\` - Create ticket panel with custom message\n` +
             `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
             `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
 
             `**✨ Ticket System Features**\n` +
             `• **Button-Based Creation:** Users click button to open tickets\n` +
-            `• **Automatic Private Channels:** Creates hidden ticket channels\n` +
+            `• **Automatic Private Channels:** Creates hidden ticket channels (username-number format)\n` +
             `• **Permission Management:** Only creator, admins, and owner can view\n` +
             `• **Role Ping Notifications:** Notify support team when tickets open\n` +
-            `• **Ticket Numbering:** Auto-incrementing ticket numbers per server\n` +
+            `• **Per-User Ticket Numbering:** Tracks tickets per user (e.g., username-1, username-2)\n` +
             `• **Easy Closing:** Close via button or command\n` +
             `• **One Ticket Per User:** Prevents spam\n\n` +
 
-            `**📋 Setup Example**\n` +
-            `\`ticket #support @Support Team\`\n` +
-            `This creates a panel in #support that pings @Support Team when tickets are created.\n\n` +
+            `**📋 Setup Examples**\n` +
+            `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
+            `\`ticketopen "1234567890" "Need help? Open a ticket!"\` - Custom message\n\n` +
 
             `**🔒 How It Works**\n` +
-            `1. Admin creates ticket panel with \`ticket\` command\n` +
+            `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
             `2. Users click "📩 Open Ticket" button\n` +
-            `3. Private ticket channel created automatically\n` +
+            `3. Private ticket channel created as username-number (e.g., john-1)\n` +
             `4. Support team receives notification\n` +
             `5. Issue resolved and ticket closed\n\n` +
 
@@ -4230,29 +4231,31 @@ function createCategoryEmbed(category) {
                     `**🎫 Ticket System Commands**\n` +
                     `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
                     `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
+                    `ᡣ𐭩 \`ticketopen "channel" "message"\` - Create panel with custom message\n` +
                     `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
-                    `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
+                    `ᡣ𐭩 \`ticketclose #username-X\` - Close specific ticket\n\n` +
 
                     `**✨ Ticket System Features**\n` +
                     `• **Button-Based Creation:** Users click button to open tickets\n` +
-                    `• **Automatic Private Channels:** Creates hidden ticket channels\n` +
+                    `• **Automatic Private Channels:** Creates ticket channels as username-number\n` +
                     `• **Permission Management:** Only creator, admins, and owner can view\n` +
                     `• **Role Ping Notifications:** Notify support team when tickets open\n` +
-                    `• **Ticket Numbering:** Auto-incrementing ticket numbers per server\n` +
+                    `• **Per-User Ticket Numbering:** Each user gets their own ticket sequence\n` +
                     `• **Easy Closing:** Close via button or command\n` +
                     `• **One Ticket Per User:** Prevents spam\n\n` +
 
-                    `**📋 Setup Example**\n` +
-                    `\`ticket #support @Support Team\`\n` +
-                    `This creates a panel in #support that pings @Support Team when tickets are created.\n\n` +
+                    `**📋 Setup Examples**\n` +
+                    `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
+                    `\`ticketopen "#support" "Need help? Click below!"\` - With custom message\n\n` +
 
                     `**🔒 How It Works**\n` +
-                    `1. Admin creates ticket panel with \`ticket\` command\n` +
+                    `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
                     `2. Users click "📩 Open Ticket" button\n` +
-                    `3. Private ticket channel created automatically\n` +
-                    `4. Support team receives notification\n` +
-                    `5. Staff can close ticket with button or \`ticketclose\` command\n` +
-                    `6. Channel auto-deletes after 5 seconds`)
+                    `3. Ticket channel created as username-number (e.g., alice-1, bob-2)\n` +
+                    `4. Category "Tickets" created automatically if needed\n` +
+                    `5. Only ticket creator, server owner, and admins can view\n` +
+                    `6. Staff can close ticket with button or \`ticketclose\` command\n` +
+                    `7. Channel auto-deletes after 5 seconds`)
                 .setFooter({ text: 'Ticket System', iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif' });
             break;
 
@@ -5375,6 +5378,56 @@ client.on('messageCreate', async message => {
         } catch (error) {
             console.error('Error creating ticket panel:', error);
             await message.reply('❌ An error occurred while creating the ticket panel.');
+        }
+        return;
+    }
+    
+    // Handle "ticketopen" command without prefix
+    if (firstWord === 'ticketopen') {
+        if (!ticketManager) {
+            return message.reply('❌ Ticket Manager not initialized');
+        }
+        
+        // Check permissions
+        if (!message.member.permissions.has(PermissionFlagsBits.ManageChannels) && 
+            message.author.id !== message.guild.ownerId && 
+            message.author.id !== BOT_OWNER_ID) {
+            return message.reply('❌ You need the "Manage Channels" permission to set up ticket panels.');
+        }
+        
+        // Parse command: ticketopen "channel id or mention" "message or details"
+        const fullCommand = message.content.slice(firstWord.length).trim();
+        
+        // Extract channel and message using regex to handle quoted strings
+        const matches = fullCommand.match(/["']([^"']+)["']\s+["']([^"']+)["']/);
+        
+        if (!matches || matches.length < 3) {
+            return message.reply(
+                '❌ Invalid format!\n' +
+                '**Usage:** `ticketopen "channel_id_or_mention" "message or details"`\n' +
+                '**Example:** `ticketopen "1234567890" "Need help? Click below to open a ticket!"`\n' +
+                '**Example:** `ticketopen "#support" "Support team will assist you shortly"`'
+            );
+        }
+        
+        let channelInput = matches[1];
+        const panelMessage = matches[2];
+        
+        // Clean channel ID (remove <#> if it's a mention)
+        channelInput = channelInput.replace(/[<#>]/g, '');
+        
+        // Validate channel exists
+        try {
+            const targetChannel = await message.guild.channels.fetch(channelInput);
+            if (!targetChannel || !targetChannel.isTextBased()) {
+                return message.reply('❌ Invalid channel! Please provide a valid text channel ID or mention.');
+            }
+            
+            // Create ticket panel with custom message
+            await ticketManager.createTicketPanel(message, channelInput, panelMessage, null);
+        } catch (error) {
+            console.error('Error creating ticket panel:', error);
+            await message.reply('❌ An error occurred while creating the ticket panel. Make sure the channel ID is valid.');
         }
         return;
     }
