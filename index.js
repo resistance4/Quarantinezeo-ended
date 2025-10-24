@@ -530,6 +530,8 @@ function getTotalCommandsCount() {
         'enablemedia', 'mediachannel', 'mediaslowmode', 'mediaslow', 'lockmedia', 'unlockmedia', 'openmedia',
         // Thread Management (7 commands)
         'createthread', 'newthread', 'lockthread', 'unlockthread', 'openthread', 'archivethread', 'unarchivethread', 'deletethread', 'removethread',
+        // Ticket System (2 commands)
+        'ticket', 'ticketclose',
         // Utility Commands (10 commands + emergency)
         'ping', 'help', 'dev', 'dm', 'ui', 'userinfo', 'fck', 'avatar', 'serverlogo', 'roleinfo', 'rename', 'srvpasuse',
         'panic', 'stop panic', 'emergency', 'end emergency', 'wbtestan'
@@ -3369,7 +3371,7 @@ function createHelpCard1() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 1/10 • Quarantine & Basic Moderation',
+            text: 'Card 1/11 • Quarantine & Basic Moderation',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3417,7 +3419,7 @@ function createHelpCard2() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 2/10 • Role & Interim Role Management',
+            text: 'Card 2/11 • Role & Interim Role Management',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3492,7 +3494,7 @@ function createHelpCard3() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 3/10 • Voice & Channel Management',
+            text: 'Card 3/11 • Voice & Channel Management',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3554,7 +3556,7 @@ function createHelpCard4() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 4/10 • Bot & User Protection',
+            text: 'Card 4/11 • Bot & User Protection',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3592,7 +3594,7 @@ function createHelpCard5() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 5/10 • Server Protection & Monitoring',
+            text: 'Card 5/11 • Server Protection & Monitoring',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3635,7 +3637,7 @@ function createHelpCard6() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 6/10 • Emergency Commands',
+            text: 'Card 6/11 • Emergency Commands',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3681,7 +3683,7 @@ function createHelpCard7() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 7/10 • Configuration & Testing',
+            text: 'Card 7/11 • Configuration & Testing',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3728,7 +3730,7 @@ function createHelpCard8() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 8/10 • God-Level Protection Features',
+            text: 'Card 8/11 • God-Level Protection Features',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3773,7 +3775,7 @@ function createHelpCard9() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 9/10 • Technical Specifications',
+            text: 'Card 9/11 • Technical Specifications',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -3820,7 +3822,61 @@ function createHelpCard10() {
         .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
         .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
         .setFooter({
-            text: 'Card 10/10 • Developer Information & Credits',
+            text: 'Card 10/11 • Developer Information & Credits',
+            iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
+        })
+        .setTimestamp();
+
+    return helpEmbed;
+}
+
+// Function to create Help Card 11 - Ticket System
+function createHelpCard11() {
+    const totalCommands = getTotalCommandsCount();
+
+    const helpEmbed = new EmbedBuilder()
+        .setColor('#af7cd2')
+        .setAuthor({
+            name: 'Quarantianizo made at discord.gg/scriptspace by script.agi',
+            iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
+        })
+        .setTitle('ᯓᡣ𐭩 **Ticket System**')
+        .setDescription(`**Total Commands:** ${totalCommands} • **Admin Channel / Authorized Users**\n\n` +
+
+            `**🎫 Ticket System Commands**\n` +
+            `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
+            `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
+            `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
+            `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
+
+            `**✨ Ticket System Features**\n` +
+            `• **Button-Based Creation:** Users click button to open tickets\n` +
+            `• **Automatic Private Channels:** Creates hidden ticket channels\n` +
+            `• **Permission Management:** Only creator, admins, and owner can view\n` +
+            `• **Role Ping Notifications:** Notify support team when tickets open\n` +
+            `• **Ticket Numbering:** Auto-incrementing ticket numbers per server\n` +
+            `• **Easy Closing:** Close via button or command\n` +
+            `• **One Ticket Per User:** Prevents spam\n\n` +
+
+            `**📋 Setup Example**\n` +
+            `\`ticket #support @Support Team\`\n` +
+            `This creates a panel in #support that pings @Support Team when tickets are created.\n\n` +
+
+            `**🔒 How It Works**\n` +
+            `1. Admin creates ticket panel with \`ticket\` command\n` +
+            `2. Users click "📩 Open Ticket" button\n` +
+            `3. Private ticket channel created automatically\n` +
+            `4. Support team receives notification\n` +
+            `5. Issue resolved and ticket closed\n\n` +
+
+            `**⚠️ Required Permissions**\n` +
+            `• Bot needs: Manage Channels, Manage Roles\n` +
+            `• User needs: Manage Channels (to create panel)`
+        )
+        .setThumbnail(client.user.displayAvatarURL({ dynamic: true, size: 256 }))
+        .setImage('https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif')
+        .setFooter({
+            text: 'Card 11/11 • Ticket System',
             iconURL: 'https://cdn.discordapp.com/attachments/1377710452653424711/1410001205639254046/a964ff33-1eaf-49ed-b487-331b3ffe3ebd.gif'
         })
         .setTimestamp();
@@ -4263,7 +4319,7 @@ async function showHelp(guildId = null, cardNumber = 1, userId = null, interacti
     let helpEmbed;
 
     // Ensure cardNumber is valid
-    if (!cardNumber || cardNumber < 1 || cardNumber > 10) {
+    if (!cardNumber || cardNumber < 1 || cardNumber > 11) {
         cardNumber = 1;
     }
 
@@ -4297,6 +4353,9 @@ async function showHelp(guildId = null, cardNumber = 1, userId = null, interacti
             break;
         case 10:
             helpEmbed = createHelpCard10();
+            break;
+        case 11:
+            helpEmbed = createHelpCard11();
             break;
         default:
             helpEmbed = createHelpCard1();
@@ -4880,7 +4939,7 @@ async function createHelpSlideshow(message, guildId) {
         // Create slideshow with 8-second intervals
         const slideshowInterval = setInterval(async () => {
             try {
-                currentCard = currentCard >= 10 ? 1 : currentCard + 1;
+                currentCard = currentCard >= 11 ? 1 : currentCard + 1;
 
                 const updatedHelpData = await showHelp(
                     guildId,
