@@ -51,6 +51,7 @@ const LOGS_CHANNEL_ID = '1410019894568681617'; // Owner logs channel
 const STATS_CHANNEL_ID = '1378464794499092581';
 const MEMBER_INFO_CHANNEL_ID = '1408878114616115231';
 let ADMIN_QUARANTINE_CHANNEL_ID = process.env.ADMIN_QUARANTINE_CHANNEL_ID || '1410011813398974626'; // Owner Commands channel
+const WELCOME_CHANNEL_ID = process.env.WELCOME_CHANNEL_ID; // Channel for welcome/leave messages (optional)
 const DEFAULT_QUARANTINE_DURATION = 5; // 5 minutes
 const STRICT_MEMBER_INFO_QUARANTINE_DURATION = 15; // 15 minutes for strict mode
 
@@ -5636,10 +5637,40 @@ client.on('guildBanAdd', async (ban) => {
     }
 });
 
-// Member security events
+// Member security events and Leave Messages
 client.on('guildMemberRemove', async (member) => {
+    // Security monitoring
     if (securityManager) {
         await securityManager.monitorKick(member);
+    }
+    
+    // Send leave message for all members (not bots)
+    if (!member.user.bot) {
+        try {
+            // Find welcome channel - try configured channel first, then find a general/welcome channel
+            let welcomeChannel = null;
+            
+            if (WELCOME_CHANNEL_ID) {
+                welcomeChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
+            }
+            
+            // If no configured channel, try to find a suitable channel
+            if (!welcomeChannel) {
+                welcomeChannel = member.guild.channels.cache.find(ch => 
+                    ch.type === 0 && // Text channel
+                    (ch.name.includes('general') || 
+                     ch.name.includes('welcome') || 
+                     ch.name.includes('chat'))
+                );
+            }
+            
+            // Send leave message if channel found
+            if (welcomeChannel && welcomeChannel.permissionsFor(member.guild.members.me).has('SendMessages')) {
+                await welcomeChannel.send(`${member.user.tag} has left the server. 👋`);
+            }
+        } catch (error) {
+            console.error('Error sending leave message:', error);
+        }
     }
 });
 
@@ -5649,10 +5680,40 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
     }
 });
 
-// Bot addition security
+// Bot addition security and Welcome Messages
 client.on('guildMemberAdd', async (member) => {
+    // Security monitoring for bots
     if (securityManager && member.user.bot) {
         await securityManager.monitorBotAdd(member);
+    }
+    
+    // Send welcome message for all members (not bots)
+    if (!member.user.bot) {
+        try {
+            // Find welcome channel - try configured channel first, then find a general/welcome channel
+            let welcomeChannel = null;
+            
+            if (WELCOME_CHANNEL_ID) {
+                welcomeChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
+            }
+            
+            // If no configured channel, try to find a suitable channel
+            if (!welcomeChannel) {
+                welcomeChannel = member.guild.channels.cache.find(ch => 
+                    ch.type === 0 && // Text channel
+                    (ch.name.includes('general') || 
+                     ch.name.includes('welcome') || 
+                     ch.name.includes('chat'))
+                );
+            }
+            
+            // Send welcome message if channel found
+            if (welcomeChannel && welcomeChannel.permissionsFor(member.guild.members.me).has('SendMessages')) {
+                await welcomeChannel.send(`Welcome to the server, ${member}! 👋`);
+            }
+        } catch (error) {
+            console.error('Error sending welcome message:', error);
+        }
     }
 });
 
