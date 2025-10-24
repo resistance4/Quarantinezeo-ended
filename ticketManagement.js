@@ -40,14 +40,34 @@ class TicketManager {
                 return message.reply('❌ The provided channel must be a text channel!');
             }
 
-            // Check permissions
+            // Check permissions - both guild-level AND channel-specific
             const botMember = guild.members.me;
+            
+            // Check if bot can send messages in the target channel
+            const channelPermissions = channel.permissionsFor(botMember);
+            if (!channelPermissions) {
+                return message.reply('❌ Unable to verify permissions in the target channel!');
+            }
+            
+            if (!channelPermissions.has(PermissionFlagsBits.ViewChannel)) {
+                return message.reply('❌ I cannot view the target channel! Please check my permissions.');
+            }
+            
+            if (!channelPermissions.has(PermissionFlagsBits.SendMessages)) {
+                return message.reply('❌ I cannot send messages in the target channel! Please check my permissions.');
+            }
+            
+            if (!channelPermissions.has(PermissionFlagsBits.EmbedLinks)) {
+                return message.reply('❌ I need the "Embed Links" permission in the target channel!');
+            }
+            
+            // Check guild-level permissions needed for creating ticket channels
             if (!botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
-                return message.reply('❌ I need the "Manage Channels" permission to create tickets!');
+                return message.reply('❌ I need the "Manage Channels" permission to create ticket channels!');
             }
 
             if (!botMember.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                return message.reply('❌ I need the "Manage Roles" permission to create tickets!');
+                return message.reply('❌ I need the "Manage Roles" permission to manage ticket permissions!');
             }
 
             // Create the ticket panel embed
@@ -100,7 +120,23 @@ class TicketManager {
 
         } catch (error) {
             console.error('Error creating ticket panel:', error);
-            return message.reply('❌ An error occurred while creating the ticket panel!');
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                stack: error.stack
+            });
+            
+            // Provide more specific error message if possible
+            let errorMsg = '❌ An error occurred while creating the ticket panel!';
+            if (error.code === 50013) {
+                errorMsg += '\n**Missing Permissions**: I don\'t have the required permissions to create the panel in that channel.';
+            } else if (error.code === 50001) {
+                errorMsg += '\n**Missing Access**: I don\'t have access to that channel.';
+            } else if (error.message) {
+                errorMsg += `\n**Error**: ${error.message}`;
+            }
+            
+            return message.reply(errorMsg);
         }
     }
 
@@ -116,6 +152,22 @@ class TicketManager {
 
             const guild = interaction.guild;
             const member = interaction.member;
+            
+            // Check if bot has required permissions
+            const botMember = guild.members.me;
+            if (!botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
+                return interaction.editReply({
+                    content: '❌ I need the "Manage Channels" permission to create ticket channels!',
+                    ephemeral: true
+                });
+            }
+            
+            if (!botMember.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                return interaction.editReply({
+                    content: '❌ I need the "Manage Roles" permission to set up ticket permissions!',
+                    ephemeral: true
+                });
+            }
 
             // Check if user already has an active ticket
             const existingTicket = this.findUserTicket(guild.id, member.id);
@@ -132,16 +184,24 @@ class TicketManager {
             );
 
             if (!ticketCategory) {
-                ticketCategory = await guild.channels.create({
-                    name: 'Tickets',
-                    type: ChannelType.GuildCategory,
-                    permissionOverwrites: [
-                        {
-                            id: guild.id, // @everyone
-                            deny: [PermissionFlagsBits.ViewChannel]
-                        }
-                    ]
-                });
+                try {
+                    ticketCategory = await guild.channels.create({
+                        name: 'Tickets',
+                        type: ChannelType.GuildCategory,
+                        permissionOverwrites: [
+                            {
+                                id: guild.id, // @everyone
+                                deny: [PermissionFlagsBits.ViewChannel]
+                            }
+                        ]
+                    });
+                } catch (categoryError) {
+                    console.error('Error creating Tickets category:', categoryError);
+                    return interaction.editReply({
+                        content: '❌ Failed to create Tickets category. Please check bot permissions!',
+                        ephemeral: true
+                    });
+                }
             }
 
             // Get ticket number for this specific user
@@ -155,58 +215,74 @@ class TicketManager {
             if (!cleanUsername) cleanUsername = 'user'; // Fallback if username has no alphanumeric chars
             
             // Create the ticket channel with username-number format
-            const ticketChannel = await guild.channels.create({
-                name: `${cleanUsername}-${userTicketNumber}`,
-                type: ChannelType.GuildText,
-                parent: ticketCategory.id,
-                permissionOverwrites: [
-                    {
-                        id: guild.id, // @everyone
-                        deny: [PermissionFlagsBits.ViewChannel]
-                    },
-                    {
-                        id: member.id, // Ticket creator
-                        allow: [
-                            PermissionFlagsBits.ViewChannel,
-                            PermissionFlagsBits.SendMessages,
-                            PermissionFlagsBits.ReadMessageHistory,
-                            PermissionFlagsBits.AttachFiles,
-                            PermissionFlagsBits.EmbedLinks
-                        ]
-                    },
-                    {
-                        id: this.client.user.id, // Bot
-                        allow: [
-                            PermissionFlagsBits.ViewChannel,
-                            PermissionFlagsBits.SendMessages,
-                            PermissionFlagsBits.ManageChannels,
-                            PermissionFlagsBits.ReadMessageHistory
-                        ]
-                    }
-                ]
-            });
-
-            // Add permissions for server owner
-            if (guild.ownerId) {
-                await ticketChannel.permissionOverwrites.create(guild.ownerId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    ManageChannels: true
+            let ticketChannel;
+            try {
+                ticketChannel = await guild.channels.create({
+                    name: `${cleanUsername}-${userTicketNumber}`,
+                    type: ChannelType.GuildText,
+                    parent: ticketCategory.id,
+                    permissionOverwrites: [
+                        {
+                            id: guild.id, // @everyone
+                            deny: [PermissionFlagsBits.ViewChannel]
+                        },
+                        {
+                            id: member.id, // Ticket creator
+                            allow: [
+                                PermissionFlagsBits.ViewChannel,
+                                PermissionFlagsBits.SendMessages,
+                                PermissionFlagsBits.ReadMessageHistory,
+                                PermissionFlagsBits.AttachFiles,
+                                PermissionFlagsBits.EmbedLinks
+                            ]
+                        },
+                        {
+                            id: this.client.user.id, // Bot
+                            allow: [
+                                PermissionFlagsBits.ViewChannel,
+                                PermissionFlagsBits.SendMessages,
+                                PermissionFlagsBits.ManageChannels,
+                                PermissionFlagsBits.ReadMessageHistory
+                            ]
+                        }
+                    ]
+                });
+            } catch (channelError) {
+                console.error('Error creating ticket channel:', channelError);
+                // Rollback the ticket number since channel creation failed
+                this.userTicketNumbers.set(userKey, userTicketNumber - 1);
+                return interaction.editReply({
+                    content: '❌ Failed to create ticket channel. Please contact a server administrator!',
+                    ephemeral: true
                 });
             }
 
-            // Add permissions for all administrator roles
-            const adminRoles = guild.roles.cache.filter(
-                role => role.permissions.has(PermissionFlagsBits.Administrator)
-            );
-            for (const [roleId, adminRole] of adminRoles) {
-                await ticketChannel.permissionOverwrites.create(roleId, {
-                    ViewChannel: true,
-                    SendMessages: true,
-                    ReadMessageHistory: true,
-                    ManageChannels: true
-                });
+            // Add permissions for server owner
+            try {
+                if (guild.ownerId) {
+                    await ticketChannel.permissionOverwrites.create(guild.ownerId, {
+                        ViewChannel: true,
+                        SendMessages: true,
+                        ReadMessageHistory: true,
+                        ManageChannels: true
+                    });
+                }
+
+                // Add permissions for all administrator roles
+                const adminRoles = guild.roles.cache.filter(
+                    role => role.permissions.has(PermissionFlagsBits.Administrator)
+                );
+                for (const [roleId, adminRole] of adminRoles) {
+                    await ticketChannel.permissionOverwrites.create(roleId, {
+                        ViewChannel: true,
+                        SendMessages: true,
+                        ReadMessageHistory: true,
+                        ManageChannels: true
+                    });
+                }
+            } catch (permError) {
+                console.error('Error setting admin permissions (non-critical):', permError);
+                // Continue anyway - the ticket channel was created, admin perms are optional
             }
 
             // Store the ticket
@@ -251,11 +327,20 @@ class TicketManager {
             const row = new ActionRowBuilder().addComponents(closeButton);
 
             // Send welcome message
-            await ticketChannel.send({
-                content: pingContent,
-                embeds: [welcomeEmbed],
-                components: [row]
-            });
+            try {
+                await ticketChannel.send({
+                    content: pingContent,
+                    embeds: [welcomeEmbed],
+                    components: [row]
+                });
+            } catch (sendError) {
+                console.error('Error sending welcome message to ticket:', sendError);
+                // Ticket was created but welcome message failed - still notify user
+                return interaction.editReply({
+                    content: `✅ Your ticket has been created: ${ticketChannel}\n⚠️ (Welcome message failed to send)`,
+                    ephemeral: true
+                });
+            }
 
             // Reply to the user
             return interaction.editReply({
@@ -265,9 +350,10 @@ class TicketManager {
 
         } catch (error) {
             console.error('Error handling ticket button:', error);
+            console.error('Error stack:', error.stack);
             try {
                 return interaction.editReply({
-                    content: '❌ An error occurred while creating your ticket!',
+                    content: `❌ An error occurred while creating your ticket!\n\`\`\`${error.message}\`\`\``,
                     ephemeral: true
                 });
             } catch (e) {
