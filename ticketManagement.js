@@ -292,7 +292,7 @@ class TicketManager {
                         permissionOverwrites: [
                             {
                                 id: guild.id, // @everyone
-                                deny: [PermissionFlagsBits.ViewChannel]
+                                deny: ['ViewChannel']
                             }
                         ]
                     });
@@ -325,25 +325,25 @@ class TicketManager {
                     permissionOverwrites: [
                         {
                             id: guild.id, // @everyone
-                            deny: [PermissionFlagsBits.ViewChannel]
+                            deny: ['ViewChannel']
                         },
                         {
                             id: member.id, // Ticket creator
                             allow: [
-                                PermissionFlagsBits.ViewChannel,
-                                PermissionFlagsBits.SendMessages,
-                                PermissionFlagsBits.ReadMessageHistory,
-                                PermissionFlagsBits.AttachFiles,
-                                PermissionFlagsBits.EmbedLinks
+                                'ViewChannel',
+                                'SendMessages',
+                                'ReadMessageHistory',
+                                'AttachFiles',
+                                'EmbedLinks'
                             ]
                         },
                         {
                             id: this.client.user.id, // Bot
                             allow: [
-                                PermissionFlagsBits.ViewChannel,
-                                PermissionFlagsBits.SendMessages,
-                                PermissionFlagsBits.ManageChannels,
-                                PermissionFlagsBits.ReadMessageHistory
+                                'ViewChannel',
+                                'SendMessages',
+                                'ManageChannels',
+                                'ReadMessageHistory'
                             ]
                         }
                     ]
