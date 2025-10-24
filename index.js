@@ -3844,13 +3844,17 @@ function createHelpCard11() {
         .setDescription(`**Total Commands:** ${totalCommands} • **Admin Channel / Authorized Users**\n\n` +
 
             `**🎫 Ticket System Commands**\n` +
-            `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
-            `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
-            `ᡣ𐭩 \`ticketopen <channel> [message]\` - Create ticket panel with custom message\n` +
+            `ᡣ𐭩 \`ticket\` - Create ticket panel in current channel\n` +
+            `ᡣ𐭩 \`ticket "message"\` - Create panel in current channel with custom message\n` +
+            `ᡣ𐭩 \`ticket "message" @role\` - Create panel with message and role ping\n` +
+            `ᡣ𐭩 \`ticket #channel "message" @role\` - Create panel in specific channel\n` +
+            `ᡣ𐭩 \`ticketopen\` - Create ticket panel in current channel\n` +
+            `ᡣ𐭩 \`ticketopen "message"\` - Create panel with custom message\n` +
             `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
             `ᡣ𐭩 \`ticketclose #ticket-X\` - Close specific ticket\n\n` +
 
             `**✨ Ticket System Features**\n` +
+            `• **Quick Setup:** Create panels in current channel with simple commands\n` +
             `• **Button-Based Creation:** Users click button to open tickets\n` +
             `• **Automatic Private Channels:** Creates hidden ticket channels (username-number format)\n` +
             `• **Permission Management:** Only creator, admins, and owner can view\n` +
@@ -3860,12 +3864,14 @@ function createHelpCard11() {
             `• **One Ticket Per User:** Prevents spam\n\n` +
 
             `**📋 Setup Examples**\n` +
-            `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
-            `\`ticketopen #support Need help? Click below!\` - With custom message\n` +
-            `\`ticketopen 1234567890\` - Panel with default message\n\n` +
+            `\`ticket\` - Create panel in current channel with default message\n` +
+            `\`ticket "Need help? Click the button!"\` - Custom message in current channel\n` +
+            `\`ticket "Support Request" @Support Team\` - With custom message and role ping\n` +
+            `\`ticket #support "How can we help?"\` - Create in specific channel\n` +
+            `\`ticketopen\` - Quick setup in current channel\n\n` +
 
             `**🔒 How It Works**\n` +
-            `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
+            `1. Admin uses \`ticket\` command in desired channel\n` +
             `2. Users click "📩 Open Ticket" button\n` +
             `3. Private ticket channel created as username-number (e.g., john-1)\n` +
             `4. Support team receives notification\n` +
@@ -4230,13 +4236,17 @@ function createCategoryEmbed(category) {
                 .setDescription(`**Total Commands:** ${totalCommands} • **Admin Channel / Authorized Users**\n\n` +
 
                     `**🎫 Ticket System Commands**\n` +
-                    `ᡣ𐭩 \`ticket <channel_id> [@role]\` - Create ticket panel in specified channel\n` +
-                    `ᡣ𐭩 \`ticket #channel [@role]\` - Create ticket panel (channel mention)\n` +
-                    `ᡣ𐭩 \`ticketopen <channel> [message]\` - Create panel with custom message\n` +
+                    `ᡣ𐭩 \`ticket\` - Create ticket panel in current channel\n` +
+                    `ᡣ𐭩 \`ticket "message"\` - Create panel in current channel with custom message\n` +
+                    `ᡣ𐭩 \`ticket "message" @role\` - Create panel with message and role ping\n` +
+                    `ᡣ𐭩 \`ticket #channel "message" @role\` - Create panel in specific channel\n` +
+                    `ᡣ𐭩 \`ticketopen\` - Create ticket panel in current channel\n` +
+                    `ᡣ𐭩 \`ticketopen "message"\` - Create panel with custom message\n` +
                     `ᡣ𐭩 \`ticketclose\` - Close current ticket channel\n` +
                     `ᡣ𐭩 \`ticketclose #username-X\` - Close specific ticket\n\n` +
 
                     `**✨ Ticket System Features**\n` +
+                    `• **Quick Setup:** Create panels in current channel with simple commands\n` +
                     `• **Button-Based Creation:** Users click button to open tickets\n` +
                     `• **Automatic Private Channels:** Creates ticket channels as username-number\n` +
                     `• **Permission Management:** Only creator, admins, and owner can view\n` +
@@ -4246,12 +4256,14 @@ function createCategoryEmbed(category) {
                     `• **One Ticket Per User:** Prevents spam\n\n` +
 
                     `**📋 Setup Examples**\n` +
-                    `\`ticket #support @Support Team\` - Basic panel with role ping\n` +
-                    `\`ticketopen #support Need help? Click below!\` - With custom message\n` +
-                    `\`ticketopen 1234567890\` - Panel with default message\n\n` +
+                    `\`ticket\` - Create panel in current channel with default message\n` +
+                    `\`ticket "Need help? Click the button!"\` - Custom message in current channel\n` +
+                    `\`ticket "Support Request" @Support Team\` - With custom message and role ping\n` +
+                    `\`ticket #support "How can we help?"\` - Create in specific channel\n` +
+                    `\`ticketopen\` - Quick setup in current channel\n\n` +
 
                     `**🔒 How It Works**\n` +
-                    `1. Admin creates ticket panel with \`ticket\` or \`ticketopen\` command\n` +
+                    `1. Admin uses \`ticket\` command in desired channel\n` +
                     `2. Users click "📩 Open Ticket" button\n` +
                     `3. Ticket channel created as username-number (e.g., alice-1, bob-2)\n` +
                     `4. Category "Tickets" created automatically if needed\n` +
@@ -5364,59 +5376,61 @@ client.on('messageCreate', async message => {
                 return processingMsg.edit('❌ You need the "Manage Channels" permission to set up ticket panels.');
             }
             
-            const args = contentParts.slice(1);
-            const channelId = args[0];
-            
-            if (!channelId) {
-                return processingMsg.edit('❌ Please provide a channel ID or mention.\n**Usage:** `ticket <channel_id> [@role]`\n**Example:** `ticket #support @Support Team`');
-            }
-            
-            // Clean channel ID first
-            const cleanChannelId = channelId.replace(/[<#>]/g, '');
-            console.log(`🔍 Looking for channel ID: ${cleanChannelId}`);
-            
-            // Validate channel exists BEFORE proceeding
-            const targetChannel = await message.guild.channels.fetch(cleanChannelId).catch(err => {
-                console.error(`❌ Failed to fetch channel ${cleanChannelId}:`, err.message);
-                return null;
-            });
-            
-            if (!targetChannel) {
-                return processingMsg.edit('❌ Invalid channel! Please provide a valid channel ID or mention.\n**Example:** `ticket #support` or `ticket 1234567890`');
-            }
-            
-            if (!targetChannel.isTextBased()) {
-                return processingMsg.edit('❌ The provided channel must be a text channel!');
-            }
-            
-            console.log(`✅ Target channel validated: ${targetChannel.name} (${targetChannel.id})`);
-            
-            // Extract role ID if provided
+            // Parse command: ticket ["message"] [@role] OR ticket #channel ["message"] [@role]
+            const fullCommand = message.content.slice('ticket'.length).trim();
+            let targetChannel = message.channel; // Default to current channel
+            let panelMessage = null; // null will use default message
             let roleId = null;
+            
+            // Check if there's a channel mention or ID
+            const channelMatch = fullCommand.match(/^(<#\d+>|\d+)/);
+            let remainingText = fullCommand;
+            
+            if (channelMatch) {
+                // Channel was specified, use that instead of current channel
+                const channelInput = channelMatch[0].replace(/[<#>]/g, '');
+                console.log(`🔍 Channel specified, looking for ID: ${channelInput}`);
+                
+                const specifiedChannel = await message.guild.channels.fetch(channelInput).catch(err => {
+                    console.error(`❌ Failed to fetch channel ${channelInput}:`, err.message);
+                    return null;
+                });
+                
+                if (!specifiedChannel) {
+                    return processingMsg.edit('❌ Invalid channel! Please provide a valid channel ID or mention.');
+                }
+                
+                if (!specifiedChannel.isTextBased()) {
+                    return processingMsg.edit('❌ The provided channel must be a text channel!');
+                }
+                
+                targetChannel = specifiedChannel;
+                remainingText = fullCommand.slice(channelMatch[0].length).trim();
+            }
+            
+            // Extract quoted message if present
+            const messageMatch = remainingText.match(/"([^"]*)"/);
+            if (messageMatch) {
+                panelMessage = messageMatch[1];
+                console.log(`💬 Custom message: "${panelMessage}"`);
+                remainingText = remainingText.replace(messageMatch[0], '').trim();
+            }
+            
+            // Extract role mention if provided
             const roleMention = message.mentions.roles.first();
             if (roleMention) {
                 roleId = roleMention.id;
                 console.log(`🔔 Role mention found: ${roleMention.name} (${roleId})`);
-            } else if (args[1]) {
-                // Try to parse role ID
-                const possibleRoleId = args[1].replace(/[<@&>]/g, '');
-                // Verify role exists
-                const role = await message.guild.roles.fetch(possibleRoleId).catch(() => null);
-                if (role) {
-                    roleId = possibleRoleId;
-                    console.log(`🔔 Role ID parsed: ${roleId}`);
-                }
             }
             
-            // Default panel message
-            const panelMessage = 'Click the button below to open a support ticket.\n\nOur staff team will assist you shortly!';
+            console.log(`✅ Target channel: ${targetChannel.name} (${targetChannel.id})`);
             
             // Update processing message
             await processingMsg.edit('⏳ Creating ticket panel...');
             
-            // Create ticket panel
+            // Create ticket panel in the target channel (current or specified)
             console.log(`🎫 Creating ticket panel in ${targetChannel.name}...`);
-            await ticketManager.createTicketPanel(message, cleanChannelId, panelMessage, roleId);
+            await ticketManager.createTicketPanel(message, targetChannel.id, panelMessage, roleId);
             console.log(`✅ Ticket panel created successfully`);
             
             // Delete processing message after success
@@ -5455,67 +5469,71 @@ client.on('messageCreate', async message => {
                 return processingMsg.edit('❌ You need the "Manage Channels" permission to set up ticket panels.');
             }
             
-            // Parse command: ticketopen <channel> [message]
+            // Parse command: ticketopen ["message"] [@role] OR ticketopen #channel ["message"] [@role]
             const fullCommand = message.content.slice('ticketopen'.length).trim();
-            console.log(`📝 Full command: "${fullCommand}"`);
+            let targetChannel = message.channel; // Default to current channel
+            let panelMessage = null; // null will use default message
+            let roleId = null;
             
-            if (!fullCommand) {
-                return processingMsg.edit(
-                    '❌ Invalid format!\n' +
-                    '**Usage:** `ticketopen <channel_id_or_mention> [custom message]`\n' +
-                    '**Examples:**\n' +
-                    '• `ticketopen #support` - Create panel with default message\n' +
-                    '• `ticketopen #support Need help? Click below!` - Custom message\n' +
-                    '• `ticketopen 1234567890 Our support team will assist you` - With channel ID'
-                );
+            // Check if there's a channel mention or ID at the start
+            const channelMatch = fullCommand.match(/^(<#\d+>|\d+)/);
+            let remainingText = fullCommand;
+            
+            if (channelMatch) {
+                // Channel was specified, use that instead of current channel
+                const channelInput = channelMatch[0].replace(/[<#>]/g, '');
+                console.log(`🔍 Channel specified, looking for ID: ${channelInput}`);
+                
+                const specifiedChannel = await message.guild.channels.fetch(channelInput).catch(err => {
+                    console.error(`❌ Failed to fetch channel ${channelInput}:`, err.message);
+                    return null;
+                });
+                
+                if (!specifiedChannel) {
+                    return processingMsg.edit('❌ Invalid channel! Please provide a valid channel ID or mention.');
+                }
+                
+                if (!specifiedChannel.isTextBased()) {
+                    return processingMsg.edit('❌ The provided channel must be a text channel!');
+                }
+                
+                targetChannel = specifiedChannel;
+                remainingText = fullCommand.slice(channelMatch[0].length).trim();
             }
             
-            // Extract channel and message - flexible parsing
-            let channelInput = '';
-            let panelMessage = null;
-            
-            // Check if first part is a channel mention or ID
-            const parts = fullCommand.split(/\s+/).filter(p => p.length > 0);
-            console.log(`📋 Command parts:`, parts);
-            
-            if (parts.length === 0) {
-                return processingMsg.edit('❌ Please provide a channel ID or mention.');
-            }
-            
-            channelInput = parts[0];
-            
-            // If there are more parts, join them as the custom message
-            if (parts.length > 1) {
-                panelMessage = parts.slice(1).join(' ');
+            // Extract quoted message if present
+            const messageMatch = remainingText.match(/"([^"]*)"/);
+            if (messageMatch) {
+                panelMessage = messageMatch[1];
                 console.log(`💬 Custom message: "${panelMessage}"`);
+                remainingText = remainingText.replace(messageMatch[0], '').trim();
+            } else if (remainingText && !channelMatch) {
+                // If no quotes and no channel specified, treat all text as message
+                panelMessage = remainingText;
+                console.log(`💬 Custom message (unquoted): "${panelMessage}"`);
+            } else if (remainingText && channelMatch) {
+                // If channel was specified and there's remaining text without quotes, use it as message
+                panelMessage = remainingText.replace(/<@&\d+>/g, '').trim();
+                if (panelMessage) {
+                    console.log(`💬 Custom message (unquoted): "${panelMessage}"`);
+                }
             }
             
-            // Clean channel ID (remove <#> if it's a mention)
-            channelInput = channelInput.replace(/[<#>]/g, '');
-            console.log(`🔍 Looking for channel ID: ${channelInput}`);
-            
-            // Validate channel exists BEFORE proceeding
-            const targetChannel = await message.guild.channels.fetch(channelInput).catch(err => {
-                console.error(`❌ Failed to fetch channel ${channelInput}:`, err.message);
-                return null;
-            });
-            
-            if (!targetChannel) {
-                return processingMsg.edit('❌ Invalid channel! Please provide a valid text channel ID or mention.\n**Example:** `ticketopen #support` or `ticketopen 1234567890`');
+            // Extract role mention if provided
+            const roleMention = message.mentions.roles.first();
+            if (roleMention) {
+                roleId = roleMention.id;
+                console.log(`🔔 Role mention found: ${roleMention.name} (${roleId})`);
             }
             
-            if (!targetChannel.isTextBased()) {
-                return processingMsg.edit('❌ The provided channel must be a text channel!');
-            }
-            
-            console.log(`✅ Target channel validated: ${targetChannel.name} (${targetChannel.id})`);
+            console.log(`✅ Target channel: ${targetChannel.name} (${targetChannel.id})`);
             
             // Update processing message
             await processingMsg.edit('⏳ Creating ticket panel...');
             
-            // Create ticket panel with custom message (or null for default)
+            // Create ticket panel in the target channel (current or specified)
             console.log(`🎫 Creating ticket panel in ${targetChannel.name}...`);
-            await ticketManager.createTicketPanel(message, channelInput, panelMessage, null);
+            await ticketManager.createTicketPanel(message, targetChannel.id, panelMessage, roleId);
             console.log(`✅ Ticket panel created successfully`);
             
             // Delete processing message after success
