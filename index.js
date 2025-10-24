@@ -5326,8 +5326,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // Handle voice management
     voiceManager.handleVoiceStateUpdate(oldState, newState);
+});
 
-    // Handle message commands
+// Handle message commands
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
     if (!message.guild) return;
