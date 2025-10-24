@@ -292,7 +292,7 @@ class TicketManager {
                         permissionOverwrites: [
                             {
                                 id: guild.id, // @everyone
-                                deny: ['ViewChannel']
+                                deny: [PermissionFlagsBits.ViewChannel]
                             }
                         ]
                     });
@@ -325,25 +325,25 @@ class TicketManager {
                     permissionOverwrites: [
                         {
                             id: guild.id, // @everyone
-                            deny: ['ViewChannel']
+                            deny: [PermissionFlagsBits.ViewChannel]
                         },
                         {
                             id: member.id, // Ticket creator
                             allow: [
-                                'ViewChannel',
-                                'SendMessages',
-                                'ReadMessageHistory',
-                                'AttachFiles',
-                                'EmbedLinks'
+                                PermissionFlagsBits.ViewChannel,
+                                PermissionFlagsBits.SendMessages,
+                                PermissionFlagsBits.ReadMessageHistory,
+                                PermissionFlagsBits.AttachFiles,
+                                PermissionFlagsBits.EmbedLinks
                             ]
                         },
                         {
                             id: this.client.user.id, // Bot
                             allow: [
-                                'ViewChannel',
-                                'SendMessages',
-                                'ManageChannels',
-                                'ReadMessageHistory'
+                                PermissionFlagsBits.ViewChannel,
+                                PermissionFlagsBits.SendMessages,
+                                PermissionFlagsBits.ManageChannels,
+                                PermissionFlagsBits.ReadMessageHistory
                             ]
                         }
                     ]
@@ -362,10 +362,10 @@ class TicketManager {
             try {
                 if (guild.ownerId) {
                     await ticketChannel.permissionOverwrites.create(guild.ownerId, {
-                        ViewChannel: true,
-                        SendMessages: true,
-                        ReadMessageHistory: true,
-                        ManageChannels: true
+                        [PermissionFlagsBits.ViewChannel]: true,
+                        [PermissionFlagsBits.SendMessages]: true,
+                        [PermissionFlagsBits.ReadMessageHistory]: true,
+                        [PermissionFlagsBits.ManageChannels]: true
                     });
                 }
 
@@ -375,10 +375,10 @@ class TicketManager {
                 );
                 for (const [roleId, adminRole] of adminRoles) {
                     await ticketChannel.permissionOverwrites.create(roleId, {
-                        ViewChannel: true,
-                        SendMessages: true,
-                        ReadMessageHistory: true,
-                        ManageChannels: true
+                        [PermissionFlagsBits.ViewChannel]: true,
+                        [PermissionFlagsBits.SendMessages]: true,
+                        [PermissionFlagsBits.ReadMessageHistory]: true,
+                        [PermissionFlagsBits.ManageChannels]: true
                     });
                 }
             } catch (permError) {
