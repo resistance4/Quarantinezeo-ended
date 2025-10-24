@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
 class SlashCommandHandler {
     constructor(client, managers) {
@@ -745,7 +745,7 @@ class SlashCommandHandler {
                 )
                 .setTimestamp();
 
-            const textChannels = interaction.guild.channels.cache.filter(c => c.type === 0 && c.permissionsFor(this.client.user).has('SendMessages'));
+            const textChannels = interaction.guild.channels.cache.filter(c => c.type === 0 && c.permissionsFor(this.client.user).has(PermissionFlagsBits.SendMessages));
             let sent = 0;
 
             for (const [id, channel] of textChannels) {
@@ -985,7 +985,7 @@ class SlashCommandHandler {
                     if (announcementChannelId) {
                         const announcementChannel = guild.channels.cache.get(announcementChannelId);
 
-                        if (announcementChannel && announcementChannel.permissionsFor(this.client.user).has('SendMessages')) {
+                        if (announcementChannel && announcementChannel.permissionsFor(this.client.user).has(PermissionFlagsBits.SendMessages)) {
                             await announcementChannel.send(messageData);
                             successCount++;
                             console.log(`✅ Sent announcement to ${guild.name} (${announcementChannel.name})`);

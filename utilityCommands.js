@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
 class UtilityCommands {
     constructor(client) {
@@ -273,7 +273,7 @@ class UtilityCommands {
         const BOT_OWNER_ID = process.env.BOT_OWNER_ID || '1327564898460242015';
         const isAuthorized = message.author.id === BOT_OWNER_ID || 
                             message.author.id === message.guild.ownerId ||
-                            message.member.permissions.has('ManageNicknames');
+                            message.member.permissions.has(PermissionFlagsBits.ManageNicknames);
 
         if (!isAuthorized) {
             await message.reply('❌ You need Manage Nicknames permission to use this command.');

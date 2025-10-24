@@ -14,7 +14,7 @@ class ChannelManager {
 
         const isBotOwner = message.author.id === BOT_OWNER_ID;
         const isServerOwner = message.author.id === message.guild.ownerId;
-        const hasAdminRole = message.member && message.member.permissions.has('Administrator');
+        const hasAdminRole = message.member && message.member.permissions.has(PermissionFlagsBits.Administrator);
         const isInOwnerChannel = message.channel.id === OWNER_CHANNEL_ID;
         const isInAdminChannel = message.channel.id === adminChannelId;
 
@@ -744,7 +744,7 @@ class ChannelManager {
 
         const isBotOwner = interaction.user.id === BOT_OWNER_ID;
         const isServerOwner = interaction.user.id === interaction.guild.ownerId;
-        const hasAdminRole = interaction.member && interaction.member.roles.cache.some(role => role.permissions.has('Administrator'));
+        const hasAdminRole = interaction.member && interaction.member.roles.cache.some(role => role.permissions.has(PermissionFlagsBits.Administrator));
         const isInOwnerChannel = interaction.channel.id === OWNER_CHANNEL_ID;
         const isInAdminChannel = interaction.channel.id === adminChannelId;
 
@@ -1496,7 +1496,7 @@ class ChannelManager {
     async lockBotCommands(message) {
         try {
             const currentPerms = message.channel.permissionOverwrites.cache.get(message.guild.roles.everyone.id);
-            const alreadyLocked = currentPerms?.deny?.has('UseApplicationCommands');
+            const alreadyLocked = currentPerms?.deny?.has(PermissionFlagsBits.UseApplicationCommands);
 
             if (alreadyLocked) {
                 await message.reply('ℹ️ Bot commands are already locked in this channel.');
@@ -1535,7 +1535,7 @@ class ChannelManager {
     async unlockBotCommands(message) {
         try {
             const currentPerms = message.channel.permissionOverwrites.cache.get(message.guild.roles.everyone.id);
-            const alreadyUnlocked = !currentPerms?.deny?.has('UseApplicationCommands');
+            const alreadyUnlocked = !currentPerms?.deny?.has(PermissionFlagsBits.UseApplicationCommands);
 
             if (alreadyUnlocked) {
                 await message.reply('ℹ️ Bot commands are already unlocked in this channel.');

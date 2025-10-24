@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionFlagsBits } = require('discord.js');
 const { initializeDatabase, saveHelpInteraction, getHelpInteraction, deleteHelpInteraction, cleanupOldInteractions } = require('./database');
 require('dotenv').config();
 
@@ -438,7 +438,7 @@ function isAuthorized(message) {
     const adminChannelId = serverConfig.adminChannelId || ADMIN_QUARANTINE_CHANNEL_ID;
     const isBotOwner = message.author.id === BOT_OWNER_ID;
     const isServerOwner = message.author.id === message.guild.ownerId;
-    const hasAdminRole = message.member && message.member.permissions.has('Administrator');
+    const hasAdminRole = message.member && message.member.permissions.has(PermissionFlagsBits.Administrator);
     const isInOwnerChannel = message.channel.id === '1410011813398974626';
     const isInAdminChannel = message.channel.id === adminChannelId;
 
@@ -656,8 +656,8 @@ async function createCompactMemberInfoEmbed(member) {
         // Enhanced permissions with more details
         const permissions = member.permissions;
         const isOwner = user.id === guild.ownerId;
-        const isAdmin = permissions.has('Administrator');
-        const isModerator = permissions.has('ModerateMembers') || permissions.has('ManageMessages');
+        const isAdmin = permissions.has(PermissionFlagsBits.Administrator);
+        const isModerator = permissions.has(PermissionFlagsBits.ModerateMembers) || permissions.has(PermissionFlagsBits.ManageMessages);
 
         let permissionLevel = 'ᯓᡣ𐭩 Member';
         let keyPermissions = [];
@@ -671,14 +671,14 @@ async function createCompactMemberInfoEmbed(member) {
         } else {
             if (isModerator) {
                 permissionLevel = '✿ Moderator';
-                if (permissions.has('BanMembers')) keyPermissions.push('Ban');
-                if (permissions.has('KickMembers')) keyPermissions.push('Kick');
-                if (permissions.has('ModerateMembers')) keyPermissions.push('Timeout');
+                if (permissions.has(PermissionFlagsBits.BanMembers)) keyPermissions.push('Ban');
+                if (permissions.has(PermissionFlagsBits.KickMembers)) keyPermissions.push('Kick');
+                if (permissions.has(PermissionFlagsBits.ModerateMembers)) keyPermissions.push('Timeout');
             }
-            if (permissions.has('ManageChannels')) keyPermissions.push('Manage Channels');
-            if (permissions.has('ManageRoles')) keyPermissions.push('Manage Roles');
-            if (permissions.has('ManageMessages')) keyPermissions.push('Manage Messages');
-            if (permissions.has('MentionEveryone')) keyPermissions.push('Mention Everyone');
+            if (permissions.has(PermissionFlagsBits.ManageChannels)) keyPermissions.push('Manage Channels');
+            if (permissions.has(PermissionFlagsBits.ManageRoles)) keyPermissions.push('Manage Roles');
+            if (permissions.has(PermissionFlagsBits.ManageMessages)) keyPermissions.push('Manage Messages');
+            if (permissions.has(PermissionFlagsBits.MentionEveryone)) keyPermissions.push('Mention Everyone');
         }
 
         // Get boost information
@@ -866,7 +866,7 @@ async function createExtendedMemberAccessCard(guild, member) {
     const canAccessChannel = (channel) => {
         if (!channel) return false;
 
-        if (guildPermissions.has('Administrator')) {
+        if (guildPermissions.has(PermissionFlagsBits.Administrator)) {
             return true;
         }
 
@@ -874,9 +874,9 @@ async function createExtendedMemberAccessCard(guild, member) {
         if (!channelPermissions) return false;
 
         if (channel.type === 0) {
-            return channelPermissions.has('ViewChannel');
+            return channelPermissions.has(PermissionFlagsBits.ViewChannel);
         } else if (channel.type === 2) {
-            return channelPermissions.has('Connect');
+            return channelPermissions.has(PermissionFlagsBits.Connect);
         }
         return false;
     };
@@ -963,7 +963,7 @@ function createMemberAccessCard(guild, member) {
         if (!channel) return false;
 
         // Check if member has Administrator permission
-        if (guildPermissions.has('Administrator')) {
+        if (guildPermissions.has(PermissionFlagsBits.Administrator)) {
             return true;
         }
 
@@ -973,9 +973,9 @@ function createMemberAccessCard(guild, member) {
 
         // Check for basic visibility and ability to connect/view
         if (channel.type === 0) { // Text Channel
-            return channelPermissions.has('ViewChannel');
+            return channelPermissions.has(PermissionFlagsBits.ViewChannel);
         } else if (channel.type === 2) { // Voice Channel
-            return channelPermissions.has('Connect');
+            return channelPermissions.has(PermissionFlagsBits.Connect);
         }
         return false;
     };
@@ -983,7 +983,7 @@ function createMemberAccessCard(guild, member) {
     let description = `## ᯓᡣ𐭩 **MEMBER ACCESS**\n\n`;
 
     // If member has administration roles, show quick admin message
-    if (guildPermissions.has('Administrator')) {
+    if (guildPermissions.has(PermissionFlagsBits.Administrator)) {
         description += `✿ **Administrator Access - All channels accessible**\n\n`;
     }
 
@@ -1041,7 +1041,7 @@ function createMemberAccessCard(guild, member) {
         description += `## ✿ **ACCESS SUMMARY**\n\n`;
         description += `❀ **${accessibleCategories}** categories accessible\n`;
         description += `✿ **${totalChannelsAccessible}** total channels\n`;
-    } else if (!guildPermissions.has('Administrator')) {
+    } else if (!guildPermissions.has(PermissionFlagsBits.Administrator)) {
         description += `## ❀ **NO ACCESS**\n\n`;
         description += `No accessible channels found.\nContact an administrator for access.\n`;
     }
@@ -1603,7 +1603,7 @@ async function createServerBaseline(guild) {
             },
             members: {
                 count: guild.memberCount,
-                adminCount: guild.members.cache.filter(m => m.permissions.has('Administrator')).size
+                adminCount: guild.members.cache.filter(m => m.permissions.has(PermissionFlagsBits.Administrator)).size
             },
             timestamp: Date.now()
         };
@@ -4783,7 +4783,7 @@ async function handleBanAppealApproval(appealId, guild, approver) {
         // Create server invite
         const inviteChannel = guild.systemChannel || 
                             guild.channels.cache.find(c => c.type === 0 && 
-                            c.permissionsFor(guild.members.me)?.has('CreateInstantInvite'));
+                            c.permissionsFor(guild.members.me)?.has(PermissionFlagsBits.CreateInstantInvite));
         let inviteLink = 'No invite could be created';
         
         if (inviteChannel) {
@@ -5624,7 +5624,7 @@ client.on('messageCreate', async message => {
 
     if (roleCommands.includes(command)) {
         console.log(`Role command detected: ${command} by ${message.author.username} (${message.author.id})`);
-        console.log(`Bot Owner: ${message.author.id === BOT_OWNER_ID}, Server Owner: ${message.author.id === message.guild.ownerId}, Has Admin Role: ${message.member && message.member.permissions.has('Administrator')}`);
+        console.log(`Bot Owner: ${message.author.id === BOT_OWNER_ID}, Server Owner: ${message.author.id === message.guild.ownerId}, Has Admin Role: ${message.member && message.member.permissions.has(PermissionFlagsBits.Administrator)}`);
         console.log(`Owner Channel: ${message.channel.id === '1410011813398974626'}, Admin Channel: ${message.channel.id === ADMIN_QUARANTINE_CHANNEL_ID}, Authorized: ${isAuthorized(message)}`);
         console.log(`Authorized User: ${isAuthorized(message)}`);
         console.log(`Owner Commands Channel ID: ${OWNER_CHANNEL_ID}, Admin Channel ID: ${ADMIN_QUARANTINE_CHANNEL_ID}, Current Channel: ${message.channel.id}`);
@@ -5680,7 +5680,7 @@ client.on('messageCreate', async message => {
 
     if (channelCommands.includes(command)) {
         console.log(`Channel command detected: ${command} by ${message.author.username} (${message.author.id})`);
-        console.log(`Bot Owner: ${message.author.id === BOT_OWNER_ID}, Server Owner: ${message.author.id === message.guild.ownerId}, Has Admin Role: ${message.member && message.member.permissions.has('Administrator')}`);
+        console.log(`Bot Owner: ${message.author.id === BOT_OWNER_ID}, Server Owner: ${message.author.id === message.guild.ownerId}, Has Admin Role: ${message.member && message.member.permissions.has(PermissionFlagsBits.Administrator)}`);
         console.log(`Owner Channel: ${message.channel.id === '1410011813398974626'}, Authorized: ${isAuthorized(message)}`);
         
         if (!isAuthorized(message)) {
@@ -5869,7 +5869,8 @@ client.on('messageCreate', async message => {
                     const targetChannel = guild.channels.cache.find(ch => 
                         ch.type === 0 && // Text channel
                         ch.name.toLowerCase().includes(channelName) &&
-                        ch.permissionsFor(guild.members.me)?.has(['SendMessages', 'ViewChannel'])
+                        ch.permissionsFor(guild.members.me)?.has(PermissionFlagsBits.SendMessages) &&
+                        ch.permissionsFor(guild.members.me)?.has(PermissionFlagsBits.ViewChannel)
                     );
 
                     if (targetChannel) {
@@ -6058,8 +6059,8 @@ client.on('guildMemberRemove', async (member) => {
             // Find any public text channel where bot can send messages
             const publicChannel = member.guild.channels.cache.find(ch => 
                 ch.type === 0 && // Text channel
-                ch.permissionsFor(member.guild.members.me)?.has('SendMessages') &&
-                ch.permissionsFor(member.guild.roles.everyone)?.has('ViewChannel') // Public channel
+                ch.permissionsFor(member.guild.members.me)?.has(PermissionFlagsBits.SendMessages) &&
+                ch.permissionsFor(member.guild.roles.everyone)?.has(PermissionFlagsBits.ViewChannel) // Public channel
             );
             
             // Send leave message
@@ -6091,8 +6092,8 @@ client.on('guildMemberAdd', async (member) => {
             // Find any public text channel where bot can send messages
             const publicChannel = member.guild.channels.cache.find(ch => 
                 ch.type === 0 && // Text channel
-                ch.permissionsFor(member.guild.members.me)?.has('SendMessages') &&
-                ch.permissionsFor(member.guild.roles.everyone)?.has('ViewChannel') // Public channel
+                ch.permissionsFor(member.guild.members.me)?.has(PermissionFlagsBits.SendMessages) &&
+                ch.permissionsFor(member.guild.roles.everyone)?.has(PermissionFlagsBits.ViewChannel) // Public channel
             );
             
             // Send welcome message
@@ -8387,7 +8388,7 @@ client.on('messageCreate', async message => {
     const isBotOwner = message.author.id === BOT_OWNER_ID;
     const isServerOwner = message.author.id === message.guild.ownerId;
     const authorMember = message.guild.members.cache.get(message.author.id);
-    const hasAdminRole = authorMember && authorMember.permissions.has('Administrator');
+    const hasAdminRole = authorMember && authorMember.permissions.has(PermissionFlagsBits.Administrator);
     const isInOwnerChannel = message.channel.id === '1410011813398974626';
     const isInAdminChannel = message.channel.id === adminChannelId;
     const isAuthorizedUser = isAuthorized(message);
@@ -8594,7 +8595,7 @@ client.on('messageCreate', async message => {
                      channel.name.toLowerCase() === 'general')
                 );
 
-                if (announcementChannel && announcementChannel.permissionsFor(guild.members.me)?.has('SendMessages')) {
+                if (announcementChannel && announcementChannel.permissionsFor(guild.members.me)?.has(PermissionFlagsBits.SendMessages)) {
                     // Create announcement embed
                     const announcementEmbed = new EmbedBuilder()
                         .setColor('#FFD700')
@@ -9397,14 +9398,14 @@ client.on('messageCreate', async message => {
             const channelPerms = message.channel.permissionsFor(targetMember);
             
             const permsList = [
-                { name: 'View Channel', has: channelPerms.has('ViewChannel') },
-                { name: 'Send Messages', has: channelPerms.has('SendMessages') },
-                { name: 'Manage Messages', has: channelPerms.has('ManageMessages') },
-                { name: 'Embed Links', has: channelPerms.has('EmbedLinks') },
-                { name: 'Attach Files', has: channelPerms.has('AttachFiles') },
-                { name: 'Add Reactions', has: channelPerms.has('AddReactions') },
-                { name: 'Mention Everyone', has: channelPerms.has('MentionEveryone') },
-                { name: 'Manage Channels', has: channelPerms.has('ManageChannels') }
+                { name: 'View Channel', has: channelPerms.has(PermissionFlagsBits.ViewChannel) },
+                { name: 'Send Messages', has: channelPerms.has(PermissionFlagsBits.SendMessages) },
+                { name: 'Manage Messages', has: channelPerms.has(PermissionFlagsBits.ManageMessages) },
+                { name: 'Embed Links', has: channelPerms.has(PermissionFlagsBits.EmbedLinks) },
+                { name: 'Attach Files', has: channelPerms.has(PermissionFlagsBits.AttachFiles) },
+                { name: 'Add Reactions', has: channelPerms.has(PermissionFlagsBits.AddReactions) },
+                { name: 'Mention Everyone', has: channelPerms.has(PermissionFlagsBits.MentionEveryone) },
+                { name: 'Manage Channels', has: channelPerms.has(PermissionFlagsBits.ManageChannels) }
             ];
 
             const allowed = permsList.filter(p => p.has).map(p => `✅ ${p.name}`).join('\n') || 'None';
@@ -10615,17 +10616,17 @@ client.on('messageCreate', async message => {
                             .sort((a, b) => b.position - a.position);
                         
                         // Group roles by categories for better organization
-                        const adminRoles = allRoles.filter(role => role.permissions.has('Administrator'));
+                        const adminRoles = allRoles.filter(role => role.permissions.has(PermissionFlagsBits.Administrator));
                         const moderatorRoles = allRoles.filter(role => 
-                            !role.permissions.has('Administrator') && 
-                            (role.permissions.has('ModerateMembers') || role.permissions.has('ManageMessages') || role.permissions.has('KickMembers') || role.permissions.has('BanMembers'))
+                            !role.permissions.has(PermissionFlagsBits.Administrator) && 
+                            (role.permissions.has(PermissionFlagsBits.ModerateMembers) || role.permissions.has(PermissionFlagsBits.ManageMessages) || role.permissions.has(PermissionFlagsBits.KickMembers) || role.permissions.has(PermissionFlagsBits.BanMembers))
                         );
                         const specialRoles = allRoles.filter(role => 
-                            !role.permissions.has('Administrator') && 
-                            !role.permissions.has('ModerateMembers') && 
-                            !role.permissions.has('ManageMessages') && 
-                            !role.permissions.has('KickMembers') && 
-                            !role.permissions.has('BanMembers') &&
+                            !role.permissions.has(PermissionFlagsBits.Administrator) && 
+                            !role.permissions.has(PermissionFlagsBits.ModerateMembers) && 
+                            !role.permissions.has(PermissionFlagsBits.ManageMessages) && 
+                            !role.permissions.has(PermissionFlagsBits.KickMembers) && 
+                            !role.permissions.has(PermissionFlagsBits.BanMembers) &&
                             (role.hoist || role.mentionable || role.color !== 0)
                         );
                         const regularRoles = allRoles.filter(role => 
@@ -10682,9 +10683,9 @@ client.on('messageCreate', async message => {
                                     const features = [];
                                     
                                     // Add role type indicators
-                                    if (role.permissions.has('Administrator')) {
+                                    if (role.permissions.has(PermissionFlagsBits.Administrator)) {
                                         features.push('👑 Admin');
-                                    } else if (role.permissions.has('ModerateMembers') || role.permissions.has('ManageMessages') || role.permissions.has('KickMembers') || role.permissions.has('BanMembers')) {
+                                    } else if (role.permissions.has(PermissionFlagsBits.ModerateMembers) || role.permissions.has(PermissionFlagsBits.ManageMessages) || role.permissions.has(PermissionFlagsBits.KickMembers) || role.permissions.has(PermissionFlagsBits.BanMembers)) {
                                         features.push('⚖️ Mod');
                                     }
                                     
@@ -12154,7 +12155,7 @@ Server: ${message.guild.name}
                         // Check if user has restricted access
                         const existingOverwrite = interimChannel.permissionOverwrites.cache.get(showUser.id);
 
-                        if (!existingOverwrite || existingOverwrite.allow.has('ViewChannel') !== false) {
+                        if (!existingOverwrite || existingOverwrite.allow.has(PermissionFlagsBits.ViewChannel) !== false) {
                             await message.reply('❌ This user does not have restricted access to the interim role channel.');
                             return;
                         }
@@ -12706,9 +12707,9 @@ Server: ${message.guild.name}
                                         const everyoneOverwrite = channel.permissionOverwrites.cache.get(message.guild.roles.everyone.id);
                                         if (everyoneOverwrite) {
                                             // Check if this overwrite was added during panic mode by checking if it has the restrictive permissions
-                                            const hasRestrictivePerms = everyoneOverwrite.deny.has('SendMessages') ||
-                                                                       everyoneOverwrite.deny.has('Connect') ||
-                                                                       everyoneOverwrite.deny.has('Speak');
+                                            const hasRestrictivePerms = everyoneOverwrite.deny.has(PermissionFlagsBits.SendMessages) ||
+                                                                       everyoneOverwrite.deny.has(PermissionFlagsBits.Connect) ||
+                                                                       everyoneOverwrite.deny.has(PermissionFlagsBits.Speak);
 
                                             if (hasRestrictivePerms) {
                                                 await everyoneOverwrite.delete(`Panic mode ended - removing restrictions by ${message.author.username}`);
@@ -12787,8 +12788,8 @@ Server: ${message.guild.name}
                         }
 
                         // Store all current administrator permissions before removing them
-                        const adminRoles = message.guild.roles.cache.filter(role => role.permissions.has('Administrator') && role.id !== message.guild.id);
-                        const adminMembers = message.guild.members.cache.filter(member => member.permissions.has('Administrator') && member.id !== message.guild.ownerId && member.id !== BOT_OWNER_ID);
+                        const adminRoles = message.guild.roles.cache.filter(role => role.permissions.has(PermissionFlagsBits.Administrator) && role.id !== message.guild.id);
+                        const adminMembers = message.guild.members.cache.filter(member => member.permissions.has(PermissionFlagsBits.Administrator) && member.id !== message.guild.ownerId && member.id !== BOT_OWNER_ID);
 
                         const originalAdminData = {
                             roles: [],
@@ -12956,9 +12957,9 @@ Server: ${message.guild.name}
                                         const everyoneOverwrite = channel.permissionOverwrites.cache.get(message.guild.roles.everyone.id);
                                         if (everyoneOverwrite) {
                                             // Check if this overwrite was added during emergency mode by checking restrictive permissions
-                                            const hasRestrictivePerms = everyoneOverwrite.deny.has('SendMessages') ||
-                                                                       everyoneOverwrite.deny.has('Connect') ||
-                                                                       everyoneOverwrite.deny.has('Speak');
+                                            const hasRestrictivePerms = everyoneOverwrite.deny.has(PermissionFlagsBits.SendMessages) ||
+                                                                       everyoneOverwrite.deny.has(PermissionFlagsBits.Connect) ||
+                                                                       everyoneOverwrite.deny.has(PermissionFlagsBits.Speak);
 
                                             if (hasRestrictivePerms) {
                                                 await everyoneOverwrite.delete(`Emergency mode ended - removing restrictions by ${message.author.username}`);
@@ -13177,9 +13178,9 @@ Server: ${message.guild.name}
         }
 
         // Check for links only if user is not admin
-        const isAdmin = member.permissions.has('Administrator') ||
-                       member.permissions.has('ManageMessages') ||
-                       member.permissions.has('ModerateMembers') ||
+        const isAdmin = member.permissions.has(PermissionFlagsBits.Administrator) ||
+                       member.permissions.has(PermissionFlagsBits.ManageMessages) ||
+                       member.permissions.has(PermissionFlagsBits.ModerateMembers) ||
                        message.author.id === message.guild.ownerId;
 
         if (!quarantineReason && !isAdmin && urlRegex.test(message.content)) {

@@ -17,7 +17,7 @@ class MediaThreadsManager {
         
         const isBotOwner = message.author.id === BOT_OWNER_ID;
         const isServerOwner = message.author.id === message.guild.ownerId;
-        const hasAdminRole = message.member && message.member.permissions.has('Administrator');
+        const hasAdminRole = message.member && message.member.permissions.has(PermissionFlagsBits.Administrator);
         const isInOwnerChannel = message.channel.id === OWNER_CHANNEL_ID;
         const isInAdminChannel = message.channel.id === adminChannelId;
 
