@@ -5636,10 +5636,30 @@ client.on('guildBanAdd', async (ban) => {
     }
 });
 
-// Member security events
+// Member security events and Leave Messages
 client.on('guildMemberRemove', async (member) => {
+    // Security monitoring
     if (securityManager) {
         await securityManager.monitorKick(member);
+    }
+    
+    // Send leave message for all members (not bots)
+    if (!member.user.bot) {
+        try {
+            // Find any public text channel where bot can send messages
+            const publicChannel = member.guild.channels.cache.find(ch => 
+                ch.type === 0 && // Text channel
+                ch.permissionsFor(member.guild.members.me)?.has('SendMessages') &&
+                ch.permissionsFor(member.guild.roles.everyone)?.has('ViewChannel') // Public channel
+            );
+            
+            // Send leave message
+            if (publicChannel) {
+                await publicChannel.send(`${member.user.tag} has left the server. 👋`);
+            }
+        } catch (error) {
+            console.error('Error sending leave message:', error);
+        }
     }
 });
 
@@ -5649,10 +5669,30 @@ client.on('guildMemberUpdate', async (oldMember, newMember) => {
     }
 });
 
-// Bot addition security
+// Bot addition security and Welcome Messages
 client.on('guildMemberAdd', async (member) => {
+    // Security monitoring for bots
     if (securityManager && member.user.bot) {
         await securityManager.monitorBotAdd(member);
+    }
+    
+    // Send welcome message for all members (not bots)
+    if (!member.user.bot) {
+        try {
+            // Find any public text channel where bot can send messages
+            const publicChannel = member.guild.channels.cache.find(ch => 
+                ch.type === 0 && // Text channel
+                ch.permissionsFor(member.guild.members.me)?.has('SendMessages') &&
+                ch.permissionsFor(member.guild.roles.everyone)?.has('ViewChannel') // Public channel
+            );
+            
+            // Send welcome message
+            if (publicChannel) {
+                await publicChannel.send(`Welcome to the server, ${member}! 👋`);
+            }
+        } catch (error) {
+            console.error('Error sending welcome message:', error);
+        }
     }
 });
 
