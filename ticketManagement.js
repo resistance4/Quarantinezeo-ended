@@ -24,21 +24,44 @@ class TicketManager {
      * Create a ticket panel in a specific channel
      * @param {Message} message - The original message
      * @param {string} channelId - The channel ID where the panel will be created
-     * @param {string} panelMessage - The message to display in the panel
+     * @param {string} panelMessage - The message to display in the panel (null for default)
      * @param {string} roleId - The role ID to ping when a ticket is created (optional)
      */
     async createTicketPanel(message, channelId, panelMessage, roleId = null) {
         try {
             const guild = message.guild;
-            const channel = await guild.channels.fetch(channelId);
+            
+            console.log(`[TicketManager] Creating panel in guild ${guild.id}, channel ${channelId}`);
+            
+            // Fetch the channel
+            const channel = await guild.channels.fetch(channelId).catch(err => {
+                console.error(`[TicketManager] Failed to fetch channel ${channelId}:`, err);
+                return null;
+            });
 
             if (!channel) {
-                return message.reply('❌ Invalid channel ID provided!');
+                console.error(`[TicketManager] Channel ${channelId} not found`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Invalid Channel')
+                    .setDescription('The provided channel ID is invalid or the channel does not exist.')
+                    .addFields({ name: 'Provided Channel ID', value: channelId })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
 
             if (!channel.isTextBased()) {
-                return message.reply('❌ The provided channel must be a text channel!');
+                console.error(`[TicketManager] Channel ${channelId} is not a text channel`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Invalid Channel Type')
+                    .setDescription('The provided channel must be a text channel!')
+                    .addFields({ name: 'Channel', value: `${channel}` })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
+
+            console.log(`[TicketManager] Target channel validated: ${channel.name}`);
 
             // Check permissions - both guild-level AND channel-specific
             const botMember = guild.members.me;
@@ -46,29 +69,72 @@ class TicketManager {
             // Check if bot can send messages in the target channel
             const channelPermissions = channel.permissionsFor(botMember);
             if (!channelPermissions) {
-                return message.reply('❌ Unable to verify permissions in the target channel!');
+                console.error(`[TicketManager] Cannot verify permissions for channel ${channelId}`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Permission Check Failed')
+                    .setDescription('Unable to verify permissions in the target channel!')
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
             
             if (!channelPermissions.has(PermissionFlagsBits.ViewChannel)) {
-                return message.reply('❌ I cannot view the target channel! Please check my permissions.');
+                console.error(`[TicketManager] Bot cannot view channel ${channelId}`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Missing Permissions')
+                    .setDescription('I cannot view the target channel! Please check my permissions.')
+                    .addFields({ name: 'Required Permission', value: 'View Channel' })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
             
             if (!channelPermissions.has(PermissionFlagsBits.SendMessages)) {
-                return message.reply('❌ I cannot send messages in the target channel! Please check my permissions.');
+                console.error(`[TicketManager] Bot cannot send messages in channel ${channelId}`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Missing Permissions')
+                    .setDescription('I cannot send messages in the target channel! Please check my permissions.')
+                    .addFields({ name: 'Required Permission', value: 'Send Messages' })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
             
             if (!channelPermissions.has(PermissionFlagsBits.EmbedLinks)) {
-                return message.reply('❌ I need the "Embed Links" permission in the target channel!');
+                console.error(`[TicketManager] Bot cannot embed links in channel ${channelId}`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Missing Permissions')
+                    .setDescription('I need the "Embed Links" permission in the target channel!')
+                    .addFields({ name: 'Required Permission', value: 'Embed Links' })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
             
             // Check guild-level permissions needed for creating ticket channels
             if (!botMember.permissions.has(PermissionFlagsBits.ManageChannels)) {
-                return message.reply('❌ I need the "Manage Channels" permission to create ticket channels!');
+                console.error(`[TicketManager] Bot lacks Manage Channels permission`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Missing Permissions')
+                    .setDescription('I need the "Manage Channels" permission to create ticket channels!')
+                    .addFields({ name: 'Required Permission', value: 'Manage Channels' })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
 
             if (!botMember.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                return message.reply('❌ I need the "Manage Roles" permission to manage ticket permissions!');
+                console.error(`[TicketManager] Bot lacks Manage Roles permission`);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Missing Permissions')
+                    .setDescription('I need the "Manage Roles" permission to manage ticket permissions!')
+                    .addFields({ name: 'Required Permission', value: 'Manage Roles' })
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
             }
+
+            console.log(`[TicketManager] All permissions validated`);
 
             // Create the ticket panel embed
             const embed = new EmbedBuilder()
@@ -86,11 +152,29 @@ class TicketManager {
 
             const row = new ActionRowBuilder().addComponents(button);
 
+            console.log(`[TicketManager] Sending panel message to channel ${channel.name}...`);
+
             // Send the panel message
-            const panelMsg = await channel.send({
-                embeds: [embed],
-                components: [row]
-            });
+            let panelMsg;
+            try {
+                panelMsg = await channel.send({
+                    embeds: [embed],
+                    components: [row]
+                });
+                console.log(`[TicketManager] Panel message sent successfully (ID: ${panelMsg.id})`);
+            } catch (sendError) {
+                console.error(`[TicketManager] Failed to send panel message:`, sendError);
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ Error: Failed to Send Panel')
+                    .setDescription('Failed to send the ticket panel message to the target channel!')
+                    .addFields(
+                        { name: 'Error Code', value: sendError.code ? String(sendError.code) : 'Unknown' },
+                        { name: 'Error Message', value: sendError.message || 'Unknown error' }
+                    )
+                    .setTimestamp();
+                return message.reply({ embeds: [errorEmbed] });
+            }
 
             // Store the panel configuration
             this.ticketPanels.set(guild.id, {
@@ -100,43 +184,60 @@ class TicketManager {
                 message: panelMessage
             });
 
+            console.log(`[TicketManager] Panel configuration stored for guild ${guild.id}`);
+
             // Initialize ticket number for this guild if not exists
             if (!this.ticketNumbers.has(guild.id)) {
                 this.ticketNumbers.set(guild.id, 0);
             }
 
             const confirmEmbed = new EmbedBuilder()
-                .setTitle('✅ Ticket Panel Created')
-                .setDescription(`Ticket panel has been successfully created in ${channel}`)
+                .setTitle('✅ Ticket Panel Created Successfully')
+                .setDescription(`The ticket panel has been successfully created in ${channel}!\n\nUsers can now click the button to open support tickets.`)
                 .setColor('#00FF00')
                 .addFields(
-                    { name: 'Channel', value: `${channel}`, inline: true },
-                    { name: 'Message ID', value: panelMsg.id, inline: true },
-                    { name: 'Role to Ping', value: roleId ? `<@&${roleId}>` : 'None', inline: true }
+                    { name: '📍 Channel', value: `${channel}`, inline: true },
+                    { name: '🆔 Message ID', value: panelMsg.id, inline: true },
+                    { name: '🔔 Role to Ping', value: roleId ? `<@&${roleId}>` : 'None', inline: true }
                 )
+                .setFooter({ text: 'Ticket system is now active!' })
                 .setTimestamp();
 
+            console.log(`[TicketManager] Ticket panel created successfully`);
             return message.reply({ embeds: [confirmEmbed] });
 
         } catch (error) {
-            console.error('Error creating ticket panel:', error);
-            console.error('Error details:', {
+            console.error('[TicketManager] Error creating ticket panel:', error);
+            console.error('[TicketManager] Error details:', {
                 message: error.message,
                 code: error.code,
                 stack: error.stack
             });
             
-            // Provide more specific error message if possible
-            let errorMsg = '❌ An error occurred while creating the ticket panel!';
+            // Provide more specific error message with embed
+            const errorEmbed = new EmbedBuilder()
+                .setColor('#FF0000')
+                .setTitle('❌ Error Creating Ticket Panel')
+                .setTimestamp();
+
             if (error.code === 50013) {
-                errorMsg += '\n**Missing Permissions**: I don\'t have the required permissions to create the panel in that channel.';
+                errorEmbed.setDescription('**Missing Permissions**\nI don\'t have the required permissions to create the panel in that channel.')
+                    .addFields({ name: 'Error Code', value: '50013 - Missing Permissions' });
             } else if (error.code === 50001) {
-                errorMsg += '\n**Missing Access**: I don\'t have access to that channel.';
-            } else if (error.message) {
-                errorMsg += `\n**Error**: ${error.message}`;
+                errorEmbed.setDescription('**Missing Access**\nI don\'t have access to that channel.')
+                    .addFields({ name: 'Error Code', value: '50001 - Missing Access' });
+            } else if (error.code === 10003) {
+                errorEmbed.setDescription('**Unknown Channel**\nThe specified channel was not found.')
+                    .addFields({ name: 'Error Code', value: '10003 - Unknown Channel' });
+            } else {
+                errorEmbed.setDescription('An unexpected error occurred while creating the ticket panel.')
+                    .addFields(
+                        { name: 'Error Message', value: error.message || 'Unknown error' },
+                        { name: 'Error Code', value: error.code ? String(error.code) : 'None' }
+                    );
             }
             
-            return message.reply(errorMsg);
+            return message.reply({ embeds: [errorEmbed] });
         }
     }
 
