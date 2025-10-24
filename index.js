@@ -5353,7 +5353,7 @@ client.on('messageCreate', async message => {
             
             if (!ticketManager) {
                 console.error('❌ Ticket Manager not initialized');
-                return processingMsg.edit('❌ Ticket Manager not initialized');
+                return processingMsg.edit('❌ Ticket Manager not initialized!');
             }
             
             // Check permissions
@@ -5368,8 +5368,28 @@ client.on('messageCreate', async message => {
             const channelId = args[0];
             
             if (!channelId) {
-                return processingMsg.edit('❌ Please provide a channel ID or mention.\nUsage: `ticket <channel_id> [@role]`\nExample: `ticket 123456789 @Support`');
+                return processingMsg.edit('❌ Please provide a channel ID or mention.\n**Usage:** `ticket <channel_id> [@role]`\n**Example:** `ticket #support @Support Team`');
             }
+            
+            // Clean channel ID first
+            const cleanChannelId = channelId.replace(/[<#>]/g, '');
+            console.log(`🔍 Looking for channel ID: ${cleanChannelId}`);
+            
+            // Validate channel exists BEFORE proceeding
+            const targetChannel = await message.guild.channels.fetch(cleanChannelId).catch(err => {
+                console.error(`❌ Failed to fetch channel ${cleanChannelId}:`, err.message);
+                return null;
+            });
+            
+            if (!targetChannel) {
+                return processingMsg.edit('❌ Invalid channel! Please provide a valid channel ID or mention.\n**Example:** `ticket #support` or `ticket 1234567890`');
+            }
+            
+            if (!targetChannel.isTextBased()) {
+                return processingMsg.edit('❌ The provided channel must be a text channel!');
+            }
+            
+            console.log(`✅ Target channel validated: ${targetChannel.name} (${targetChannel.id})`);
             
             // Extract role ID if provided
             let roleId = null;
@@ -5379,28 +5399,34 @@ client.on('messageCreate', async message => {
                 console.log(`🔔 Role mention found: ${roleMention.name} (${roleId})`);
             } else if (args[1]) {
                 // Try to parse role ID
-                roleId = args[1].replace(/[<@&>]/g, '');
-                console.log(`🔔 Role ID parsed: ${roleId}`);
+                const possibleRoleId = args[1].replace(/[<@&>]/g, '');
+                // Verify role exists
+                const role = await message.guild.roles.fetch(possibleRoleId).catch(() => null);
+                if (role) {
+                    roleId = possibleRoleId;
+                    console.log(`🔔 Role ID parsed: ${roleId}`);
+                }
             }
             
             // Default panel message
             const panelMessage = 'Click the button below to open a support ticket.\n\nOur staff team will assist you shortly!';
             
-            const cleanChannelId = channelId.replace(/[<#>]/g, '');
-            console.log(`🔍 Looking for channel ID: ${cleanChannelId}`);
-            
-            // Delete the processing message
-            await processingMsg.delete().catch(() => {});
+            // Update processing message
+            await processingMsg.edit('⏳ Creating ticket panel...');
             
             // Create ticket panel
-            console.log(`🎫 Creating ticket panel...`);
+            console.log(`🎫 Creating ticket panel in ${targetChannel.name}...`);
             await ticketManager.createTicketPanel(message, cleanChannelId, panelMessage, roleId);
             console.log(`✅ Ticket panel created successfully`);
             
+            // Delete processing message after success
+            await processingMsg.delete().catch(() => {});
+            
         } catch (error) {
             console.error('❌ Error in ticket command:', error);
+            console.error('Stack trace:', error.stack);
             try {
-                await message.reply('❌ An error occurred while creating the ticket panel.');
+                await message.reply(`❌ An error occurred while creating the ticket panel!\n**Error:** ${error.message}`);
             } catch (replyError) {
                 console.error('❌ Failed to send error message:', replyError);
             }
@@ -5418,7 +5444,7 @@ client.on('messageCreate', async message => {
             
             if (!ticketManager) {
                 console.error('❌ Ticket Manager not initialized');
-                return processingMsg.edit('❌ Ticket Manager not initialized');
+                return processingMsg.edit('❌ Ticket Manager not initialized!');
             }
             
             // Check permissions
@@ -5439,8 +5465,8 @@ client.on('messageCreate', async message => {
                     '**Usage:** `ticketopen <channel_id_or_mention> [custom message]`\n' +
                     '**Examples:**\n' +
                     '• `ticketopen #support` - Create panel with default message\n' +
-                    '• `ticketopen 1234567890 Need help? Click below!` - Custom message\n' +
-                    '• `ticketopen #support Our support team will assist you` - Channel mention with custom message'
+                    '• `ticketopen #support Need help? Click below!` - Custom message\n' +
+                    '• `ticketopen 1234567890 Our support team will assist you` - With channel ID'
                 );
             }
             
@@ -5468,34 +5494,38 @@ client.on('messageCreate', async message => {
             channelInput = channelInput.replace(/[<#>]/g, '');
             console.log(`🔍 Looking for channel ID: ${channelInput}`);
             
-            // Validate channel exists
+            // Validate channel exists BEFORE proceeding
             const targetChannel = await message.guild.channels.fetch(channelInput).catch(err => {
                 console.error(`❌ Failed to fetch channel ${channelInput}:`, err.message);
                 return null;
             });
             
             if (!targetChannel) {
-                return processingMsg.edit('❌ Invalid channel! Please provide a valid text channel ID or mention.');
+                return processingMsg.edit('❌ Invalid channel! Please provide a valid text channel ID or mention.\n**Example:** `ticketopen #support` or `ticketopen 1234567890`');
             }
             
             if (!targetChannel.isTextBased()) {
                 return processingMsg.edit('❌ The provided channel must be a text channel!');
             }
             
-            console.log(`✅ Target channel found: ${targetChannel.name} (${targetChannel.id})`);
+            console.log(`✅ Target channel validated: ${targetChannel.name} (${targetChannel.id})`);
             
-            // Delete the processing message
-            await processingMsg.delete().catch(() => {});
+            // Update processing message
+            await processingMsg.edit('⏳ Creating ticket panel...');
             
             // Create ticket panel with custom message (or null for default)
-            console.log(`🎫 Creating ticket panel...`);
+            console.log(`🎫 Creating ticket panel in ${targetChannel.name}...`);
             await ticketManager.createTicketPanel(message, channelInput, panelMessage, null);
             console.log(`✅ Ticket panel created successfully`);
             
+            // Delete processing message after success
+            await processingMsg.delete().catch(() => {});
+            
         } catch (error) {
             console.error('❌ Error in ticketopen command:', error);
+            console.error('Stack trace:', error.stack);
             try {
-                await message.reply('❌ An error occurred while creating the ticket panel. Make sure the channel ID is valid.');
+                await message.reply(`❌ An error occurred while creating the ticket panel!\n**Error:** ${error.message}`);
             } catch (replyError) {
                 console.error('❌ Failed to send error message:', replyError);
             }
