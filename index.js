@@ -5326,8 +5326,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
     // Handle voice management
     voiceManager.handleVoiceStateUpdate(oldState, newState);
+});
 
-    // Handle message commands
+// Handle message commands
 client.on('messageCreate', async message => {
     if (message.author.bot) return;
     if (!message.guild) return;
@@ -5803,9 +5804,6 @@ client.on('messageCreate', async message => {
     if (mediaThreadsManager) {
         await mediaThreadsManager.handleMessage(message);
     }
-});
-
-// Close message create event handler properly
 });
 
 // === SECURITY MANAGER EVENT LISTENERS ===
@@ -8174,7 +8172,9 @@ client.on('messageCreate', async message => {
         // Channel Creation/Management Commands
         'crcato', 'crchannel', 'crvc', 'delchannel', 'botcmdslock', 'botcmdsunlock', 'disconnectall', 'dmes', 'say', 'move',
         // General Channel Commands
-        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear'
+        'permissions', 'perms', 'checkperms', 'channels', 'listchannels', 'clear',
+        // Ticket Commands
+        'ticket', 'ticketclose'
     ];
 
     const isCommandLike = commandLikePatterns.some(pattern => messageContent.startsWith(pattern));
